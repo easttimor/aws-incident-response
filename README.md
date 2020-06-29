@@ -46,3 +46,25 @@ from cloudtrail_000000000000
 where sourceip = 'seeAbove'
 and year = '####'
 and month = '##'
+
+### General Purpose
+
+#### Most common API actions for a given day
+
+select eventname,count(*) as total
+from cloudtrail_000000000000 
+where year = '####' and month = '##' and day = '##'
+group by eventname
+order by total desc
+
+#### Useful fields
+* useridentity.principalid
+* useridentity.arn
+
+* useridentity.type
+**AssumedRole
+**AWSService
+**Unknown
+**IAMUser
+**AWSAccount
+**SAMLUser

@@ -47,6 +47,69 @@ where sourceip = 'seeAbove'
 and year = '####'
 and month = '##'
 
+### EC2 Instance Compromise
+
+#### Most common API calls by an instance (instance profile / attached IAM Role)
+select eventname, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and useridentity.principalid like '%:i-xxxxxxxxxxxxxxxxx'
+group by eventname
+order by total desc
+limit 25
+
+#### and denied...
+select eventname, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and useridentity.principalid like '%:i-xxxxxxxxxxxxxxxxx'
+and errorcode = 'AccessDenied'
+group by eventname
+order by total desc
+limit 25
+
+#### EC2 isntances getting the most denied actions
+select useridentity.principalid, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and useridentity.principalid like '%:i-%'
+and errorcode = 'AccessDenied'
+group by useridentity.principalid
+order by total desc
+limit 25
+
+#### Collectively, what actions are getting denied the most for EC2 instances
+select eventsource,eventname,count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and useridentity.principalid like '%:i-%'
+and eventname <> 'AssumeRole'
+and errorcode = 'AccessDenied'
+group by eventsource,eventname
+order by total desc
+limit 25
+
+#### Are any EC2 instances interacting with IAM?
+select useridentity.principalid,eventsource,eventname,count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and useridentity.principalid like '%:i-%'
+and eventsource = 'iam.amazonaws.com'
+group by useridentity.principalid,eventsource,eventname
+order by total desc
+limit 25
+
+#### Are any EC2 instances enumarating S3?
+select useridentity.principalid,eventsource,eventname,count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and useridentity.principalid like '%:i-%'
+and eventsource = 's3.amazonaws.com'
+and eventname = 'ListBuckets'
+group by useridentity.principalid,eventsource,eventname
+order by total desc
+limit 25
+
 ### General Purpose
 
 #### Most common API actions for a given day
@@ -76,7 +139,7 @@ limit 25
 #### Common denied actions from specific principal (see above)
 select eventname, count(*) as total
 from cloudtrail_000000000000
-where year = '2020' and month = '06' and day = '27'
+where year = '####' and month = '##' and day = '##'
 and errorcode = 'AccessDenied'
 and useridentity.principalid = 'AROAxxxxxxxxxxxxxxxxx:i-xxxxxxxxxxxxxxxxx'
 group by eventname

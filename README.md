@@ -57,10 +57,51 @@ where year = '####' and month = '##' and day = '##'
 group by eventname
 order by total desc
 
+#### Most common error codes
+select errorcode, count(errorcode) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+group by errorcode
+order by total desc
+
+#### Principals getting denied the most
+select useridentity.principalid, count(*) as deniedactions
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and errorcode = 'AccessDenied'
+group by useridentity.principalid
+order by deniedactions desc
+limit 25
+
+#### Common denied actions from specific principal (see above)
+select eventname, count(*) as total
+from cloudtrail_000000000000
+where year = '2020' and month = '06' and day = '27'
+and errorcode = 'AccessDenied'
+and useridentity.principalid = 'AROAxxxxxxxxxxxxxxxxx:i-xxxxxxxxxxxxxxxxx'
+group by eventname
+order by total desc
+
 #### Useful fields
+
 * useridentity.principalid
+
 * useridentity.arn
 
+* useridentity.accesskeyid
+
+* useridentity.sessioncontext.attributes.mfaauthenticated
+**true
+**false
+**null
+
+* useridentity.sessioncontext.sessionissuer.type
+**Role
+
+* useridentity.sessioncontext.sessionissuer.arn
+* useridentity.sessioncontext.sessionissuer.username
+* useridentity.principalid **AROAxxxxxxxxxxxxxxxxx:role-session-name
+* useridentity.accountid (identifies access from external accounts)
 * useridentity.type
 **AssumedRole
 **AWSService
@@ -68,3 +109,6 @@ order by total desc
 **IAMUser
 **AWSAccount
 **SAMLUser
+
+
+

@@ -145,7 +145,31 @@ and useridentity.principalid = 'AROAxxxxxxxxxxxxxxxxx:i-xxxxxxxxxxxxxxxxx'
 group by eventname
 order by total desc
 
-#### Useful fields
+### Beginnings of dirty API call list
+* these are better suited for event driven alerting - future project
+#### Policy:IAMUser/RootCredentialUsage
+select * 
+from cloudtrail_000000000000
+where year = '####' and month = '##' 
+and useridentity.type = 'Root'
+
+#### Persistence:IAMUser/UserPermissions
+select useridentity.principalid, eventname, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'iam.amazonaws.com'
+and eventname not like 'Get%' 
+and eventname not like 'List%'
+and eventname not like 'Generate%'
+group by useridentity.principalid, eventname
+order by total desc
+
+#### Stealth:IAMUser/CloudTrailLoggingDisabled
+
+#### Stealth:IAMUser/LoggingConfigurationModified
+
+
+### Useful fields
 
 * useridentity.principalid
 

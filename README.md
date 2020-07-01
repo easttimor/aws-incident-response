@@ -4,7 +4,7 @@ Start by implementing Cloudtrail Partitioner. The SQL "tables" shown below are p
 Including year, month, and day greatly improves performance and data costs. Tweak queries as needed for the appropriate time windows.
 
 To-do:
-- [ ] more service coverage (particularly network)
+- [ ] more service coverage (particularly network and storage)
 - [ ] consistent mapping to ATT&CK
 - [ ] Event filter library, automated detection and alerting
 

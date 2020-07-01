@@ -3,6 +3,11 @@
 Start by implementing Cloudtrail Partitioner. The SQL "tables" shown below are partitioned by account to include year, month, and day. Partitions act like an index, enabling Athena to query smaller data sets. This query efficiency has the potential to significantly improve query speed and reduce cost.
 Including year, month, and day greatly improves performance and data costs. Tweak queries as needed for the appropriate time windows.
 
+To-do:
+- [ ] more service coverage (particularly network)
+- [ ] consistent mapping to ATT&CK
+- [ ] Event filter library, automated detection and alerting
+
 ## Access Key Exposure
 We are looking for the following:
 * what actions has this key been used for, historically and currently?
@@ -243,9 +248,9 @@ orderby eventtime desc
 ```
 #### Add/Update Credentials
 * RhinoSec:
-  * 4. Creating a new user access key
-  * 5. Creating a new login profile
-  * 6. Updating an existing login profile
+  * (4) Creating a new user access key
+  * (5) Creating a new login profile
+  * (6) Updating an existing login profile
 ```
 select *
 from cloudtrail_000000000000
@@ -291,9 +296,17 @@ order by eventtime desc
 select *
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
-and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress')
+and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress'
+'CreateSecurityGroup','ModifyInstanceAttribute')
 order by eventtime desc
 ```
+Action | Impact
+------------ | -------------
+AuthorizeSecurityGroupIngress | expand EC2 isntance inbound traffic permissions (persistance, exfil, or exploit)
+AuthorizeSecurityGroupEgress | expand EC2 instance initiated outbound traffic permissions (exfil data or pivot)
+CreateSecurityGroup | supports ingress/egress permissions for any associated EC2 instance
+ModifyInstanceAttribute | in this context, may be used to attach a security group to an EC2 instance network interface
+
 
 ## Disruption
 * Technique
@@ -303,6 +316,25 @@ order by eventtime desc
 ### CloudTrail
 * GuardDuty Findings:
   * Stealth:IAMUser/CloudTrailLoggingDisabled
+#### CloudTrail Disruption
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('DeleteTrail','StopLogging','UpdateTrail',
+'PutEventSelectors')
+```
+Action | Impact
+------------ | -------------
+DeleteTrail | disrupt recording
+StopLogging | disrupt recording and delivery
+UpdateTrail | disrupt log delivery, minify * --no-include-global-service-events * --no-is-multi-region-trail * --no-enable-log-file-validation
+PutEventSelectors | disrupt data events for S3 and/or Lambda
+
+To-do:
+- [ ] bucket deletion
+- [ ] bucket object deletion
+- [ ] bucket tampering
 
 ### GuardDuty
 
@@ -365,3 +397,9 @@ useridentity.sessioncontext.sessionissuer.username |
 useridentity.principalid | AROAxxxxxxxxxxxxxxxxx:role-session-name
 useridentity.accountid | identifies access from external accounts 
 useridentity.type | AssumedRole, AWSService, Unknown, IAMUser, AWSAccount, SAMLUser
+
+## Credit and References
+* https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/
+* https://github.com/elastic/detection-rules/tree/main/rules/aws
+
+

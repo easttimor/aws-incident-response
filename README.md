@@ -207,7 +207,39 @@ and eventname not like 'Generate%'
 group by useridentity.principalid, eventname
 order by total desc
 ```
+### Privilege Escalation: IAM Policy
+IAM Policy updates used to expand permissions of associated principals (IAM Users, IAM Roles).
 
+* RhinoSec:
+  * (1) Creating a new policy version
+  * (2) Setting the default policy version to an existing version
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventName IN ('CreatePolicyVersion','SetDefaultPolicyVersion')
+order by eventtime desc
+```
+
+#### Add/Update Credentials
+* RhinoSec:
+  * (4) Creating a new user access key
+  * (5) Creating a new login profile
+  * (6) Updating an existing login profile
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventName IN ('CreateAccessKey', 
+'CreateLoginProfile','UpdateLoginProfile',
+'CreateVirtualMFADevice','DeactivateMFADevice','DeleteVirtualMFADevice','EnableMFADevice'
+'CreateServiceSpecificCredential','UpdateServiceSpecificCredential','DeleteServiceSpecificCredential',
+'UploadServerCertificate','DeleteServerCertificate',
+'UploadSigningCertificate','UpdateSigningCertificate','DeleteSigningCertificate',
+'UploadSSHPublicKey','UpdateSSHPublicKey','DeleteSSHPublicKey'
+)
+order by eventtime desc
+```
 ### Privilege Escalation: Adding permissions
 Permission expansion may include disassociating a principal from an IAM Policy due to the removal of explicit Deny effects.
 * Technique: 
@@ -246,25 +278,7 @@ and eventSource = 'iam.amazonaws.com'
 and eventName IN ('UpdateAssumeRolePolicy')
 orderby eventtime desc
 ```
-#### Add/Update Credentials
-* RhinoSec:
-  * (4) Creating a new user access key
-  * (5) Creating a new login profile
-  * (6) Updating an existing login profile
-```
-select *
-from cloudtrail_000000000000
-where year = '####' and month = '##' and day = '##'
-and eventName IN ('CreateAccessKey', 
-'CreateLoginProfile','UpdateLoginProfile',
-'CreateVirtualMFADevice','DeactivateMFADevice','DeleteVirtualMFADevice','EnableMFADevice'
-'CreateServiceSpecificCredential','UpdateServiceSpecificCredential','DeleteServiceSpecificCredential',
-'UploadServerCertificate','DeleteServerCertificate',
-'UploadSigningCertificate','UpdateSigningCertificate','DeleteSigningCertificate',
-'UploadSSHPublicKey','UpdateSSHPublicKey','DeleteSSHPublicKey'
-)
-order by eventtime desc
-```
+
 #### Modify Federated Access
 ```
 select *

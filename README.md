@@ -285,6 +285,13 @@ order by eventtime desc
 ```
 
 ### Modify Federated Access
+* Tactics
+  * TA0001 Initial Access
+  * TA0003 Persistence
+* Techniques
+  * T1098 Account Manipulation
+  * T1199 Trusted Relationship
+
 ```
 select *
 from cloudtrail_000000000000
@@ -295,9 +302,15 @@ and eventName IN ('CreateSAMLProvider','UpdateSAMLProvider','DeleteSAMLProvider'
 order by eventtime desc
 ```
 ## S3
-* Tactic
+* Tactics
   * TA0005 Defense Evasion
-* GuardDuty:
+  * TA0010 Exfiltration
+  * TA0006 Credential Access
+* Techniques
+  * T1029 Scheduled Transfer
+  * T1537 Transfer Data to Cloud Account
+  * T1081 Credentials in Files
+* GuardDuty
   * Stealth:S3/ServerAccessLoggingDisabled
 ```
 select *
@@ -432,7 +445,25 @@ and eventname IN ('ListMembers','GetMembers',
 'ListThreatIntelSets','GetThreatIntelSet')
 order by eventtime desc
 ```
-### Stealth:IAMUser/LoggingConfigurationModified
+### EC2
+
+#### Disrupt VPC Flow Logs
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'ec2.amazonaws.com'
+and eventname = 'DeleteFlowLogs'
+```
+Note: GuardDuty, if enabled, monitors VPC Flow Logs independent of logging configuration. This disruptions primarily impacts custom monitoring solutions and 3rd party software.
+
+Action | Impact
+------------ | -------------
+DeleteFlowLogs | Bypass detection by disabling collection of net flow
 
 ## Useful fields
 

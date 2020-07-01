@@ -203,21 +203,21 @@ group by useridentity.principalid, eventname
 order by total desc
 ```
 
-#### Privilege Escalation: Adding permissions
+### Privilege Escalation: Adding permissions
 Permission expansion may include disassociating a principal from an IAM Policy due to the removal of explicit Deny effects.
-Technique: 
-* T1098 Account Manipulation
-Tactic:
-* TA0003 Persistence
-* TA0006 Account Manipulation
-RhinoSec:
-* 7. Attaching a policy to a user
-* 8. Attaching a policy to a group
-* 9. Attaching a policy to a role
-* 10. Creating/updating an inline policy for a user
-* 11. Creating/updating an inline policy for a group
-* 12. Creating/updating an inline policy for a role
-* 13. Adding a user to a group
+* Technique: 
+  * T1098 Account Manipulation
+* Tactic:
+  * TA0003 Persistence
+  * TA0006 Account Manipulation
+* RhinoSec:
+  * 7. Attaching a policy to a user
+  * 8. Attaching a policy to a group
+  * 9. Attaching a policy to a role
+  * 10. Creating/updating an inline policy for a user
+  * 11. Creating/updating an inline policy for a group
+  * 12. Creating/updating an inline policy for a role
+  * 13. Adding a user to a group
 ```
 select *
 from cloudtrail_000000000000
@@ -231,8 +231,8 @@ and eventName IN ('AttachUserPolicy', 'DetachUserPolicy',
 orderby eventtime desc
 ```
 #### Privilege Escalation: Expand Access to an IAM Role
-RhinoSec:
-* 14. Updating the AssumeRolePolicyDocument of a role
+* RhinoSec:
+  * 14. Updating the AssumeRolePolicyDocument of a role
 ```
 select *
 from cloudtrail_000000000000
@@ -242,10 +242,10 @@ and eventName IN ('UpdateAssumeRolePolicy')
 orderby eventtime desc
 ```
 #### Add/Update Credentials
-RhinoSec:
-* 4. Creating a new user access key
-* 5. Creating a new login profile
-* 6. Updating an existing login profile
+* RhinoSec:
+  * 4. Creating a new user access key
+  * 5. Creating a new login profile
+  * 6. Updating an existing login profile
 ```
 select *
 from cloudtrail_000000000000

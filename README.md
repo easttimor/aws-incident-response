@@ -271,12 +271,65 @@ and eventName IN ('CreateSAMLProvider','UpdateSAMLProvider','DeleteSAMLProvider'
 order by eventtime desc
 ```
 
-UpdateAssumeRolePolicy
+#### Network Access
+* Technique
+  * T1108 Redundant Access
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0003 Persistence
+  * TA0005 Defensive Evasion
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('CreateNetworkAcl','CreateNetworkAclEntry',
+'DeleteNetworkAcl','DeleteNetworkAclEncry')
+```
 
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress')
+```
 
+## Disruption
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
 ### Stealth:IAMUser/CloudTrailLoggingDisabled
-
 ### Stealth:IAMUser/LoggingConfigurationModified
+
+### GuardDuty
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('CreateFilter','CreateIPSet','CreateSampleFindings','CreateThreatIntelSet',
+'DeleteDetector','DeleteMembers','DeletePublishingDestination','DeleteThreatIntelSet',
+'DisassociateFromMasterAccount','DisassociateMembers','StopMonitoringMembers',
+'UpdateDetector','UpdateFilter','UpdateIPSet','UpdatePublishingDestination','UpdateThreatIntelSet')
+```
+
+Action | Impact
+------------ | -------------
+CreateFilter | Exempts findings (auto-archive)
+CreateIPSet | Exempts a potentially malicious IP as trusted
+CreateSampleFindings | Chaos. Flood GuardDuty with sample findings as a diversion
+CreateThreatIntelSet | Chaos. Flood GuardDuty with false positives as a diversion
+DeleteDetector | 
+DeleteMembers | Master unaware of member findings. Significant impact if event handling for findings is handled only at the master.
+DeletePublishingDestination | Disrupt event flow for threat findings
+DeleteThreatIntelSet | Custom IP threat list not evaluated
+DisassociateFromMasterAccount | Master unaware of member findings
+DisassociateMembers | Master unaware of member findings
+StopMonitoringMembers | Master unaware of member findings
+UpdateDetector |
+UpdateFilter | see CreateFilter
+UpdateIPSet | see CreateIPSet
+UpdatePublishingDestination | see DeletePublishingDestination
+UpdateThreatIntelSet | see DeleteThreatIntelSet
 
 
 ## Useful fields

@@ -270,7 +270,7 @@ and eventName IN ('AttachUserPolicy', 'DetachUserPolicy',
 'PutUserPolicy','PutGroupPolicy','PutRolePolicy',
 'DeleteUserPolicy','DeleteGroupPolicy','DeleteRolePolicy',
 'DeleteRolePermissionsBoundary')
-orderby eventtime desc
+order by eventtime desc
 ```
 ### Privilege Escalation: Expand Access to an IAM Role
 * RhinoSec:
@@ -281,7 +281,7 @@ from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
 and eventSource = 'iam.amazonaws.com' 
 and eventName IN ('UpdateAssumeRolePolicy')
-orderby eventtime desc
+order by eventtime desc
 ```
 
 ### Modify Federated Access
@@ -307,6 +307,7 @@ and eventname in ('DeleteBucket','DeleteBucketPolicy',
 'PutBucketAcl','PutBucketCORS','PutBucketPolicy','PutReplicationConfiguration',
 'PutBucketLogging','PutEncryptionConfiguration','PutLifecycleConfiguration','PutObjectAcl',
 'RestoreObject')
+order by eventtime desc
 ```
 Action | Impact
 ------------ | -------------

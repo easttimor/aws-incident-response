@@ -410,14 +410,15 @@ CreateSecurityGroup | supports ingress/egress permissions for any associated EC2
 ModifyInstanceAttribute | in this context, may be used to attach a security group to an EC2 instance network interface
 
 
-## Disruption
+## Disruption and Evasion
+
+
+
+### CloudTrail
 * Technique
   * T1089 Disabling Security Tools
 * Tactic
   * TA0005 Defensive Evasion
-
-
-### CloudTrail
 * GuardDuty Findings:
   * Stealth:IAMUser/CloudTrailLoggingDisabled
   * Stealth:IAMUser/LoggingConfigurationModified
@@ -441,6 +442,59 @@ To-do:
 - [ ] bucket deletion
 - [ ] bucket object deletion
 - [ ] bucket tampering
+
+### Config
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
+
+#### Disrupt Config Recording, Evaluation, and Remediation
+> CloudTrail may still log resource configuration actions
+> Goals here are to prevent resource configuration history (for forensics), non-compliance detection, and remediation
+> Offensive capability may be introduced through Systems Manager Automation as remediation action
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'config.amazonaws.com'
+and eventname IN ('DeleteConfigRule','DeleteOrganizationConfigRule',
+'DeleteConfigurationAggregator','DeleteConfigurationRecorder',
+'DeleteConformancePack','DeleteOrganizationConformancePack',
+'DeleteDeliveryChannel','PutDeliveryChannel',
+'DeleteRemediationConfiguration','DeleteRetentionConfiguration',
+'PutConfigRule', 'PutConfigurationAggregator','PutConformancePack',
+'PutOrganizationConfigRule','PutOrganizationConformancePack',
+'PutRemediationConfigurations','PutRemediationExceptions',
+'PutRetentionConfiguration',
+'StopConfigurationRecorder')
+```
+Action | Impact
+------------ | -------------
+DeleteConfigRule | Update to not detect non-compliant resources configurations
+DeleteConfigurationAggregator | Update to not detect non-compliant resources configurations
+DeleteConfigurationRecorder | Resource configuration changes will no longer be recorded
+DeleteConformancePack | Update to not detect non-compliant resources configurations
+DeleteDeliveryChannel | Remove Config service settings (s3 bucket, sns topic, delivery frequency). Requires StopConfigurationRecorder
+DeleteOrganizationConfigRule | Update to not detect non-compliant resources configurations
+DeleteOrganizationConformancePack | Update to not detect non-compliant resources configurations
+DeleteRemediationConfiguration | Update to not auto-remediate compromised resource configuration
+DeleteRetentionConfiguration | Update to not retain resource configuration history
+PutConfigRule | Update to not detect non-compliant resources configurations
+PutConfigurationAggregator | Update to not detect non-compliant resources configurations
+PutConformancePack | Update to not detect non-compliant resources configurations
+PutDeliveryChannel | Update Config service settings (s3 bucket, sns topic, delivery frequency)
+PutOrganizationConfigRule | Update to not detect non-compliant resources configurations
+PutOrganizationConformancePack | Update to not detect non-compliant resources configurations
+PutRemediationConfigurations | Update to not remediate compromised resource configuration, update to execute arbitrary API actions
+PutRemediationExceptions | Update to not remediate compromised resource configuration
+PutRetentionConfiguration | Update to not retain resource configuration history
+StopConfigurationRecorder | resource configuration changes will no longer be recorded
+
+To-do:
+- [ ] S3 Bucket disruption
+- [ ] Disable stream configuration changes and notifications to an Amazon SNS topic
+- [ ] Explain use of AWS Config role for privilege escalation
 
 ### GuardDuty
 
@@ -508,7 +562,40 @@ Action | Impact
 ------------ | -------------
 DeleteFlowLogs | Bypass detection by disabling collection of net flow
 
-## Useful fields
+### Web Application Firewall (WAF)
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
+
+```
+select *
+from cloudtrail_000000000000
+where (year = '####' and month = '##' and day = '##')
+and eventname in ('DeleteFirewallManagerRuleGroups','DeleteIPSet',
+'DeleteLoggingConfiguration','DeletePermissionPolicy','DeleteRegexPatternSet',
+'DeleteRuleGroup','DeleteWebACL','DisassociateWebACL',
+'PutLoggingConfiguration','PutPermissionPolicy',
+'UpdateIPSet','UpdateRegexPatternSet','UpdateRuleGroup','UpdateWebACL')
+```
+Action | Impact
+------------ | -------------
+DeleteFirewallManagerRuleGroups | rexpand network access; if not managed by Firewall manager
+DeleteIPSet | expand network access
+DeleteLoggingConfiguration | disrupt logging
+DeletePermissionPolicy | expand network access
+DeleteRegexPatternSet | expand network access
+DeleteRuleGroup | expand network access
+DeleteWebACL | expand network access
+DisassociateWebACL | expand network access
+PutLoggingConfiguration | see DeleteLoggingConfiguration
+PutPermissionPolicy | expand network access
+UpdateIPSet | expand network access - allow attack network
+UpdateRegexPatternSet | expand network access
+UpdateRuleGroup | expand network access
+UpdateWebACL | expand network access
+
+## Useful CloudTrail fields
 
 Key | Values / Notes
 ------------ | -------------

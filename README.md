@@ -167,7 +167,7 @@ order by total desc
 ```
 
 # API Watchlist
-* these are better suited for event driven alerting - future project
+> these are better suited for event driven alerting - future project
 
 ## IAM
 ### Root Credential Use

@@ -1,5 +1,9 @@
 # CloudTrail Queries using Athena
 
+This page is a collection of useful things to look for in CloudTrail. Filters may be created to alert to these actions. The queries may also prove useful for threat hunting and incidend response.
+
+While these same concepts/capabilities may be implemented outside of Athena, this page's examples are SQL and leverage Athena tables and partitions.
+
 Start by implementing Cloudtrail Partitioner. The SQL "tables" shown below are partitioned by account to include year, month, and day. Partitions act like an index, enabling Athena to query smaller data sets. This query efficiency has the potential to significantly improve query speed and reduce cost.
 Including year, month, and day greatly improves performance and data costs. Tweak queries as needed for the appropriate time windows.
 

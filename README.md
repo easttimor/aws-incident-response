@@ -1,7 +1,6 @@
-# incident-response
+# CloudTrail Queries using Athena
 
-# Athena Queries
-Start by implementing Cloudtrail Partitioner. The tables shown below are partitioned by account to include year, month, and day. This has the potential to significantly improve query speed and reduce cost.
+Start by implementing Cloudtrail Partitioner. The SQL "tables" shown below are partitioned by account to include year, month, and day. Partitions act like an index, enabling Athena to query smaller data sets. This query efficiency has the potential to significantly improve query speed and reduce cost.
 Including year, month, and day greatly improves performance and data costs. Tweak queries as needed for the appropriate time windows.
 
 ## Access Key Exposure

@@ -596,19 +596,36 @@ UpdateRuleGroup | expand network access
 UpdateWebACL | expand network access
 
 ## Useful CloudTrail fields
+> https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html
+
+> https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-user-identity.html
+
+> https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-examples.html#error-code-and-error-message
 
 Key | Values / Notes
 ------------ | -------------
-useridentity.arn | 
-useridentity.principalid |
+useridentity.arn | arn:aws:sts::000000000000:assumed-role/AssumedRoleName/AssumedRoleSessionName
 useridentity.accesskeyid | AKIA*****************
 useridentity.sessioncontext.attributes.mfaauthenticated | true, false, null
 useridentity.sessioncontext.sessionissuer.type | Role
-useridentity.sessioncontext.sessionissuer.arn | 
-useridentity.sessioncontext.sessionissuer.username | 
-useridentity.principalid | AROAxxxxxxxxxxxxxxxxx:role-session-name
+useridentity.sessioncontext.sessionissuer.arn | arn:aws:iam::123456789012:role/RoleToBeAssumed
+useridentity.sessioncontext.sessionissuer.username | RoleToBeAssumed
+useridentity.principalid | AROAxxxxxxxxxxxxxxxxx:role-session-name (AIDAxxxxxxxxxxxxxxxxx, AROAxxxxxxxxxxxxxxxxx, saml:namequalifier and saml:sub keys)
 useridentity.accountid | identifies access from external accounts 
-useridentity.type | AssumedRole, AWSService, Unknown, IAMUser, AWSAccount, SAMLUser
+useridentity.type | AssumedRole, AWSService, Unknown, IAMUser, AWSAccount, SAMLUser, Root
+eventtime | date and time of request in UTC
+eventsource | AWS service name xxx.amazonaws.com
+eventname | the API action
+awsregion | e.g. us-east-1
+sourceipaddress | x.x.x.x or xxx.amazonaws.com
+useragent | e.g. ```Botocore/1.13.43 Python/3.7.5 Linux/3.10.0-1127.13.1.el7.x86_64```
+errorcode | may alternatively be in responseElements
+errormessage | may alternatively be in responseElements
+requestparameters | detailed parameters for the API action
+responseElements | for create,update,delete actions
+eventtype | AwsApiCall, AwsServiceEvent, AwsConsoleSignin
+eventid | globally unique CloudTrail event ID, worth remembering for easier retrieval of valuable events
+
 
 ## Credit and References
 * https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/

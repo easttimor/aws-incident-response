@@ -340,6 +340,44 @@ PutLifecycleConfiguration | Exfil data if lifecycle rule incluces a more permiss
 PutObjectAcl | Expand access to object
 RestoreObject | Access an archived object 
 
+## EC2
+
+### Enable/Disable EBS Encryption
+* Technique
+  * T1492 Stored Data Manipulation
+  * T1486 Data Encrypted for Impact
+* Tactic
+  * TA0040 Impact
+
+
+#### Account-wide Setting
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'ec2.amazonaws.com'
+and eventname IN ('EnableEbsEncryptionByDefault','DisableEbsEncryptionByDefault')
+```
+### Share EBS Snapshot
+
+* Tactics
+  * TA0010 Exfiltration
+* Techniques
+  * T1537 Transfer Data to Cloud Account
+
+
+> ```--user-ids 000000000000``` is used to share with an external account
+
+> ```--group-names all``` is used to share publicly
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'ec2.amazonaws.com'
+and eventname = 'ModifySnapshotAttribute'
+```
+
 ## Network Access
 * Technique
   * T1108 Redundant Access
@@ -463,7 +501,8 @@ where year = '####' and month = '##' and day = '##'
 and eventsource = 'ec2.amazonaws.com'
 and eventname = 'DeleteFlowLogs'
 ```
-Note: GuardDuty, if enabled, monitors VPC Flow Logs independent of logging configuration. This disruptions primarily impacts custom monitoring solutions and 3rd party software.
+
+> Note: GuardDuty, if enabled, monitors VPC Flow Logs independent of logging configuration. This disruptions primarily impacts custom monitoring solutions and 3rd party software.
 
 Action | Impact
 ------------ | -------------

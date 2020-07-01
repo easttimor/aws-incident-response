@@ -162,14 +162,17 @@ group by eventname
 order by total desc
 ```
 
-## Beginnings of dirty API call list
+# API Watchlist
 * these are better suited for event driven alerting - future project
 
-### Policy:IAMUser/RootCredentialUsage
+## IAM
+### Root Credential Use
 * Technique: T1078 Valid Accounts
 * Tactic: 
   * TA0001 Initial Access
   * TA0003 Persistence
+* GuardDuty:
+  * Policy:IAMUser/RootCredentialUsage
 ```
 select * 
 from cloudtrail_000000000000
@@ -195,7 +198,9 @@ where year = '####' and month = '##'
 and eventname IN ('DeactivateMFADevice', 'DeleteVirtualMFADevice')
 ```
 
-### Persistence:IAMUser/UserPermissions
+### All IAM Changes
+* GuardDuty:
+  * Persistence:IAMUser/UserPermissions
 ```
 select useridentity.principalid, eventname, count(*) as total
 from cloudtrail_000000000000
@@ -221,7 +226,7 @@ and eventName IN ('CreatePolicyVersion','SetDefaultPolicyVersion')
 order by eventtime desc
 ```
 
-#### Add/Update Credentials
+### Add/Update Credentials
 * RhinoSec:
   * (4) Creating a new user access key
   * (5) Creating a new login profile
@@ -267,7 +272,7 @@ and eventName IN ('AttachUserPolicy', 'DetachUserPolicy',
 'DeleteRolePermissionsBoundary')
 orderby eventtime desc
 ```
-#### Privilege Escalation: Expand Access to an IAM Role
+### Privilege Escalation: Expand Access to an IAM Role
 * RhinoSec:
   * (14) Updating the AssumeRolePolicyDocument of a role
 ```
@@ -279,7 +284,7 @@ and eventName IN ('UpdateAssumeRolePolicy')
 orderby eventtime desc
 ```
 
-#### Modify Federated Access
+### Modify Federated Access
 ```
 select *
 from cloudtrail_000000000000
@@ -289,8 +294,35 @@ and eventName IN ('CreateSAMLProvider','UpdateSAMLProvider','DeleteSAMLProvider'
 'AddClientIDToOpenIDConnectProvider','RemoveClientIDFromOpenIDConnectProvider')
 order by eventtime desc
 ```
+## S3
+* Tactic
+  * TA0005 Defense Evasion
+* GuardDuty:
+  * Stealth:S3/ServerAccessLoggingDisabled
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname in ('DeleteBucket','DeleteBucketPolicy',
+'PutBucketAcl','PutBucketCORS','PutBucketPolicy','PutReplicationConfiguration',
+'PutBucketLogging','PutEncryptionConfiguration','PutLifecycleConfiguration','PutObjectAcl',
+'RestoreObject')
+```
+Action | Impact
+------------ | -------------
+DeleteBucket | Stealth, if bucket contains logs
+DeleteBucketPolicy | Expand access if explicit denies are removed
+PutBucketAcl | Expand access (exfil, pivot)
+PutBucketCORS | Potential for data exfiltration 
+PutBucketPolicy | Expand access to bucket
+PutReplicationConfiguration | Expand access if target bucket is less restrictive, exfil data
+PutBucketLogging | Stealth, disable logging
+PutEncryptionConfiguration | Disable encryption, exfil cleartext data
+PutLifecycleConfiguration | Exfil data if lifecycle rule incluces a more permissive target
+PutObjectAcl | Expand access to object
+RestoreObject | Access an archived object 
 
-#### Network Access
+## Network Access
 * Technique
   * T1108 Redundant Access
   * T1089 Disabling Security Tools
@@ -327,9 +359,13 @@ ModifyInstanceAttribute | in this context, may be used to attach a security grou
   * T1089 Disabling Security Tools
 * Tactic
   * TA0005 Defensive Evasion
+
+
 ### CloudTrail
 * GuardDuty Findings:
   * Stealth:IAMUser/CloudTrailLoggingDisabled
+  * Stealth:IAMUser/LoggingConfigurationModified
+
 #### CloudTrail Disruption
 ```
 select *
@@ -414,6 +450,7 @@ useridentity.type | AssumedRole, AWSService, Unknown, IAMUser, AWSAccount, SAMLU
 
 ## Credit and References
 * https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/
+* https://medium.com/voogloo/which-cloud-trail-calls-are-important-for-security-teams-26003d9939ec
 * https://github.com/elastic/detection-rules/tree/main/rules/aws
 
 

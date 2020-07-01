@@ -211,13 +211,13 @@ Permission expansion may include disassociating a principal from an IAM Policy d
   * TA0003 Persistence
   * TA0006 Account Manipulation
 * RhinoSec:
-  * 7. Attaching a policy to a user
-  * 8. Attaching a policy to a group
-  * 9. Attaching a policy to a role
-  * 10. Creating/updating an inline policy for a user
-  * 11. Creating/updating an inline policy for a group
-  * 12. Creating/updating an inline policy for a role
-  * 13. Adding a user to a group
+  * (7) Attaching a policy to a user
+  * (8) Attaching a policy to a group
+  * (9) Attaching a policy to a role
+  * (10) Creating/updating an inline policy for a user
+  * (11) Creating/updating an inline policy for a group
+  * (12) Creating/updating an inline policy for a role
+  * (13) Adding a user to a group
 ```
 select *
 from cloudtrail_000000000000
@@ -232,7 +232,7 @@ orderby eventtime desc
 ```
 #### Privilege Escalation: Expand Access to an IAM Role
 * RhinoSec:
-  * 14. Updating the AssumeRolePolicyDocument of a role
+  * (14) Updating the AssumeRolePolicyDocument of a role
 ```
 select *
 from cloudtrail_000000000000

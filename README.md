@@ -14,16 +14,14 @@ We are looking for the following:
 select eventtime, eventsource, eventname, sourceip, errorcode, useragent
 from cloudtrail_000000000000
 where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
-and year = '####'
-and month = '##'
+and year = '####' and month = '##'
 ```
 ### Look for user agent anomalies
 ```
 select useragent, count(*) as total
 from cloudtrail_000000000000
 where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
-and year = '####'
-and month = '##'
+and year = '####' and month = '##'
 group by useragent
 order by total desc
 ```
@@ -31,16 +29,14 @@ order by total desc
 select eventtime, eventsource, eventname, sourceip, errorcode
 from cloudtrail_000000000000
 where useragent = 'seeAbove'
-and year = '####'
-and month = '##'
+and year = '####' and month = '##'
 ```
 ### Look for source ip anomalies
 ```
 select sourceip, count(*) as total
 from cloudtrail_000000000000
 where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
-and year = '####'
-and month = '##'
+and year = '####' and month = '##'
 group by sourceip
 order by total desc
 ```
@@ -165,11 +161,33 @@ order by total desc
 * these are better suited for event driven alerting - future project
 
 ### Policy:IAMUser/RootCredentialUsage
+* Technique: T1078 Valid Accounts
+* Tactic: 
+  * TA0001 Initial Access
+  * TA0003 Persistence
 ```
 select * 
 from cloudtrail_000000000000
 where year = '####' and month = '##' 
 and useridentity.type = 'Root'
+```
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' 
+and eventname = 'ConsoleLogin'
+and useridentity.type = 'Root'
+```
+### Remove MFA from an IAM User
+While IAM Policy may still include a condiion that requires MFA, removing MFA from an IAM User enables a pivot to that principal.
+
+* Technique: T1531 Account Access Removal
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' 
+and eventname IN ('DeactivateMFADevice', 'DeleteVirtualMFADevice')
 ```
 
 ### Persistence:IAMUser/UserPermissions
@@ -184,6 +202,77 @@ and eventname not like 'Generate%'
 group by useridentity.principalid, eventname
 order by total desc
 ```
+
+#### Privilege Escalation: Adding permissions
+Permission expansion may include disassociating a principal from an IAM Policy due to the removal of explicit Deny effects.
+Technique: 
+* T1098 Account Manipulation
+Tactic:
+* TA0003 Persistence
+* TA0006 Account Manipulation
+RhinoSec:
+* 7. Attaching a policy to a user
+* 8. Attaching a policy to a group
+* 9. Attaching a policy to a role
+* 10. Creating/updating an inline policy for a user
+* 11. Creating/updating an inline policy for a group
+* 12. Creating/updating an inline policy for a role
+* 13. Adding a user to a group
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventSource = 'iam.amazonaws.com' 
+and eventName IN ('AttachUserPolicy', 'DetachUserPolicy',
+'AttachRolePolicy', 'DetachRolePolicy',
+'PutUserPolicy','PutGroupPolicy','PutRolePolicy',
+'DeleteUserPolicy','DeleteGroupPolicy','DeleteRolePolicy',
+'DeleteRolePermissionsBoundary')
+orderby eventtime desc
+```
+#### Privilege Escalation: Expand Access to an IAM Role
+RhinoSec:
+* 14. Updating the AssumeRolePolicyDocument of a role
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventSource = 'iam.amazonaws.com' 
+and eventName IN ('UpdateAssumeRolePolicy')
+orderby eventtime desc
+```
+#### Add/Update Credentials
+RhinoSec:
+* 4. Creating a new user access key
+* 5. Creating a new login profile
+* 6. Updating an existing login profile
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventName IN ('CreateAccessKey', 
+'CreateLoginProfile','UpdateLoginProfile',
+'CreateVirtualMFADevice','DeactivateMFADevice','DeleteVirtualMFADevice','EnableMFADevice'
+'CreateServiceSpecificCredential','UpdateServiceSpecificCredential','DeleteServiceSpecificCredential',
+'UploadServerCertificate','DeleteServerCertificate',
+'UploadSigningCertificate','UpdateSigningCertificate','DeleteSigningCertificate',
+'UploadSSHPublicKey','UpdateSSHPublicKey','DeleteSSHPublicKey'
+)
+order by eventtime desc
+```
+#### Modify Federated Access
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventName IN ('CreateSAMLProvider','UpdateSAMLProvider','DeleteSAMLProvider',
+'CreateOpenIDConnectProvider','DeleteOpenIDConnectProvider','UpdateOpenIDConnectProviderThumbprint',
+'AddClientIDToOpenIDConnectProvider','RemoveClientIDFromOpenIDConnectProvider')
+order by eventtime desc
+```
+
+UpdateAssumeRolePolicy
+
 
 ### Stealth:IAMUser/CloudTrailLoggingDisabled
 

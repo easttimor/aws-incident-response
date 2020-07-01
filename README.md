@@ -284,6 +284,7 @@ from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
 and eventname IN ('CreateNetworkAcl','CreateNetworkAclEntry',
 'DeleteNetworkAcl','DeleteNetworkAclEncry')
+order by eventtime desc
 ```
 
 ```
@@ -291,6 +292,7 @@ select *
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
 and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress')
+order by eventtime desc
 ```
 
 ## Disruption
@@ -298,10 +300,13 @@ and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress'
   * T1089 Disabling Security Tools
 * Tactic
   * TA0005 Defensive Evasion
-### Stealth:IAMUser/CloudTrailLoggingDisabled
-### Stealth:IAMUser/LoggingConfigurationModified
+### CloudTrail
+* GuardDuty Findings:
+  * Stealth:IAMUser/CloudTrailLoggingDisabled
 
 ### GuardDuty
+
+#### GuardDuty Disruption
 ```
 select *
 from cloudtrail_000000000000
@@ -310,27 +315,41 @@ and eventname IN ('CreateFilter','CreateIPSet','CreateSampleFindings','CreateThr
 'DeleteDetector','DeleteMembers','DeletePublishingDestination','DeleteThreatIntelSet',
 'DisassociateFromMasterAccount','DisassociateMembers','StopMonitoringMembers',
 'UpdateDetector','UpdateFilter','UpdateIPSet','UpdatePublishingDestination','UpdateThreatIntelSet')
+order by eventtime desc
 ```
 
 Action | Impact
 ------------ | -------------
-CreateFilter | Exempts findings (auto-archive)
-CreateIPSet | Exempts a potentially malicious IP as trusted
+CreateFilter | Bypass detection. Exempts findings (auto-archive)
+CreateIPSet | Bypass detection. Exempts a potentially malicious IP as trusted
 CreateSampleFindings | Chaos. Flood GuardDuty with sample findings as a diversion
 CreateThreatIntelSet | Chaos. Flood GuardDuty with false positives as a diversion
-DeleteDetector | 
-DeleteMembers | Master unaware of member findings. Significant impact if event handling for findings is handled only at the master.
+DeleteDetector | Bypass detection
+DeleteMembers | Bypass detection. Master unaware of member findings. Significant impact if event handling for findings is handled only at the master.
 DeletePublishingDestination | Disrupt event flow for threat findings
 DeleteThreatIntelSet | Custom IP threat list not evaluated
-DisassociateFromMasterAccount | Master unaware of member findings
-DisassociateMembers | Master unaware of member findings
+DisassociateFromMasterAccount | Bypass detection. Master unaware of member findings
+DisassociateMembers | Bypass detection. Master unaware of member findings
 StopMonitoringMembers | Master unaware of member findings
-UpdateDetector |
+UpdateDetector | Bypass detection. set -no-enable
 UpdateFilter | see CreateFilter
 UpdateIPSet | see CreateIPSet
 UpdatePublishingDestination | see DeletePublishingDestination
 UpdateThreatIntelSet | see DeleteThreatIntelSet
 
+#### GuardDuty Recon
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('ListMembers','GetMembers',
+'ListDetectors','GetDetector',
+'ListFilters','GetFilter',
+'ListIPSets','GetIPSet',
+'ListThreatIntelSets','GetThreatIntelSet')
+order by eventtime desc
+```
+### Stealth:IAMUser/LoggingConfigurationModified
 
 ## Useful fields
 

@@ -10,7 +10,7 @@ Including year, month, and day greatly improves performance and data costs. Twea
 To-do:
 - [ ] more service coverage (particularly network and storage)
 - [ ] consistent mapping to ATT&CK
-- [ ] Event filter library, automated detection and alerting
+- [ ] Event filter library (in this repo), automated detection and alerting
 
 ## Access Key Exposure
 We are looking for the following:

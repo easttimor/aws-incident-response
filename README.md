@@ -53,7 +53,9 @@ and year = '####'
 and month = '##'
 ```
 ## EC2 Instance Compromise
+EC2 instances may have an IAM Role attached to them. The combination of the instance and the role is called an "instance profile". When the role is assumed, the EC2 instance ID is used as the session name part of the Principal ARN in CloudTrail. We can identify actions of EC2 instances using the clause ```useridentity.principalid like '%:i-%'``` or a specific EC2 instance ```useridentity.principalid like '%:i-00000000000000000'```
 
+The actions of EC2 instances will typically be repetitive and persistent, because all actions are presumed to be initiated by software and not a human. Play close attention to any anomalous API calls. An attacker with access to an EC2 instance has access to any IAM permissions granted to that instance via the instance profile.
 ### Most common API calls by an instance (instance profile / attached IAM Role)
 ```
 select eventname, count(*) as total
@@ -64,7 +66,7 @@ group by eventname
 order by total desc
 limit 25
 ```
-### and denied...
+### ...that were denied
 ```
 select eventname, count(*) as total
 from cloudtrail_000000000000
@@ -75,7 +77,7 @@ group by eventname
 order by total desc
 limit 25
 ```
-### EC2 isntances getting the most denied actions
+### EC2 instances getting the most denied actions
 ```
 select useridentity.principalid, count(*) as total
 from cloudtrail_000000000000

@@ -1,7 +1,3 @@
-locals {
-  account-id = "986879855481"
-}
-
 data "aws_caller_identity" "current" {}
 
 resource "aws_sns_topic" "this" {

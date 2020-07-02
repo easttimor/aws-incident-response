@@ -541,6 +541,38 @@ and eventname IN ('ListMembers','GetMembers',
 'ListThreatIntelSets','GetThreatIntelSet')
 order by eventtime desc
 ```
+### Macie(2)
+> This section applies to the new Macie ```macie2.amazonaws.com``` which is not Macie "classic"
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('ArchiveFindings','CreateFindingsFilter',
+'DeleteMember','DisassociateFromMasterAccount','DisassociateMember',
+'DisableMacie',
+'UpdateFindingsFilter','UpdateMacieSession','UpdateMemberSession','DisableOrganizationAdminAccount',
+'UpdateClassificationJob','UpdateFindingsFilter')
+order by eventtime desc
+```
+> Note that DeregisterDelegatedAdministrator is an eventsource organizations.amazonaws.com
+
+Action | Impact
+------------ | -------------
+ArchiveFindings | Bypass detection by retroactively removing findings
+CreateFindingsFilter | Bypass detection by setting auto-archive rules (suppress findings)
+Organizations:DeregisterDelegatedAdministrator | sever delegated admin account from organization master configuration
+DeleteMember | Bypass detection. After disassociation (still enabled, not reported to master), deleting a member disabled Macie for the Member.
+DisassociateFromMasterAccount | Bypass detection. Macie is still enabled on member, but findings are not reported to master
+DisassociateMember | Bypass detection. Macie is still enabled on member, but findings are not reported to master
+DisableMacie | Bypass detection. Disables Macie and deletes Macie resources
+UpdateFindingsFilter | Bypass detection by setting auto-archive rules (suppress findings)
+UpdateMacieSession | "requestParameters": {"status": "PAUSED"}, Bypass decection by suspending Macie or updating Macie configurations
+UpdateMemberSession | "requestParameters": {"status": "PAUSED"}, Bypass detection by suspending Macie or updating Macie configurations
+DisableOrganizationAdminAccount | Remove delegated administration account for Macie
+UpdateClassificationJob | Bypass detection by removing scanned resources
+UpdateFindingsFilter | Bypass detection by suppressing findings
+
+
 ### EC2
 
 #### Disrupt VPC Flow Logs

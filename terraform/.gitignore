@@ -1,0 +1,16 @@
+# Module directory
+.terraform/
+
+# Workspace directory
+terraform.tfstate.d/
+
+# Terragrunt cache
+.terragrunt-cache/
+
+# Compiled files
+.git/
+*.zip
+*.DS_Store
+
+# Editor settings
+.vscode/

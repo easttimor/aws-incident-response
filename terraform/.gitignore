@@ -14,3 +14,6 @@ terraform.tfstate.d/
 
 # Editor settings
 .vscode/
+
+# Backend (auto-generated)
+backend.tf

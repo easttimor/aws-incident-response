@@ -630,6 +630,11 @@ UpdateArchiveRule | Evade detection. Auto-archive matched findings
 UpdateFindings | Evate detection. Archive sepcific findings
 
 ### Inspector
+
+> https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazoninspector.html
+
+> https://docs.aws.amazon.com/cli/latest/reference/inspector/index.html
+
 * Technique
   * T1089 Disabling Security Tools
 * Tactic

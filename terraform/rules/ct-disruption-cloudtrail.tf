@@ -1,8 +1,8 @@
 module "rule-disruption-cloudtrail" {
   source = "../modules/rules"
 
-  name        = "disruption-cloudtrail"
-  description = "Capture CloudTrail configuration changes"
+  name          = "disruption-cloudtrail"
+  description   = "Capture CloudTrail configuration changes"
   is_enabled    = true
   event_pattern = <<-PATTERN
   {

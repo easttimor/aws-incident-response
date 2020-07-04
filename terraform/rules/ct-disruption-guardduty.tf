@@ -1,10 +1,10 @@
 module "rule-disruption-guardduty" {
   source = "../modules/rules"
 
-  name        = "disruption-guardduty"
-  description = "Capture GuardDuty configuration changes"
+  name          = "disruption-guardduty"
+  description   = "Capture GuardDuty configuration changes"
   is_enabled    = true
-  event_pattern = <<PATTERN
+  event_pattern = <<-PATTERN
   {
     "source": [
       "aws.guardduty"

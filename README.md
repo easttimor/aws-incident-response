@@ -60,6 +60,22 @@ and month = '##'
 EC2 instances may have an IAM Role attached to them. The combination of the instance and the role is called an "instance profile". When the role is assumed, the EC2 instance ID is used as the session name part of the Principal ARN in CloudTrail. We can identify actions of EC2 instances using the clause ```useridentity.principalid like '%:i-%'``` or a specific EC2 instance ```useridentity.principalid like '%:i-00000000000000000'```
 
 The actions of EC2 instances will typically be repetitive and persistent, because all actions are presumed to be initiated by software and not a human. Play close attention to any anomalous API calls. An attacker with access to an EC2 instance has access to any IAM permissions granted to that instance via the instance profile.
+
+### Recent API calls with a specific instanceId as the target resource
+> Very inefficient I know - room for improvement here
+
+> The CloudTrail UI provides `resource name` as search criteria. Note that `resource name` is not an actual key in the JSON so they're abstracting some query magic. Relevant events may not be included in this CloudTrail API query - otherwise stated, the below Athena query will show you more events for better or worse.
+
+```
+select eventTime, eventName, eventSource
+from cloudtrail_000000000000
+where year = 'xxxx' and month = 'xx' and day = 'xx'
+and (requestParameters like '%i-xxxxxxxxxxxxxxxxx%' or responseElements like '%i-xxxxxxxxxxxxxxxxx%')
+and eventname not like 'Describe%'
+and eventsource = 'ec2.amazonaws.com'
+limit 25
+```
+
 ### Most common API calls by an instance (instance profile / attached IAM Role)
 ```
 select eventname, count(*) as total
@@ -235,6 +251,9 @@ order by eventtime desc
   * (4) Creating a new user access key
   * (5) Creating a new login profile
   * (6) Updating an existing login profile
+* Pacu:
+  * ```iam__backdoor_users_keys```
+  * ```iam__backdoor_users_password```
 ```
 select *
 from cloudtrail_000000000000
@@ -276,9 +295,12 @@ and eventName IN ('AttachUserPolicy', 'DetachUserPolicy',
 'DeleteRolePermissionsBoundary')
 order by eventtime desc
 ```
+
 ### Privilege Escalation: Expand Access to an IAM Role
 * RhinoSec:
   * (14) Updating the AssumeRolePolicyDocument of a role
+* Pacu:
+  * ```iam__backdoor_assume_role```
 ```
 select *
 from cloudtrail_000000000000
@@ -287,6 +309,9 @@ and eventSource = 'iam.amazonaws.com'
 and eventName IN ('UpdateAssumeRolePolicy')
 order by eventtime desc
 ```
+Action | Impact
+------------ | -------------
+UpdateAssumeRolePolicy | Persistence / Privilege escalation allowing an IAM User to assume an IAM Role and its associated permissions
 
 ### Modify Federated Access
 * Tactics
@@ -349,7 +374,6 @@ RestoreObject | Access an archived object
 * Tactic
   * TA0040 Impact
 
-
 #### Account-wide Setting
 ```
 select *
@@ -409,10 +433,30 @@ AuthorizeSecurityGroupEgress | expand EC2 instance initiated outbound traffic pe
 CreateSecurityGroup | supports ingress/egress permissions for any associated EC2 instance
 ModifyInstanceAttribute | in this context, may be used to attach a security group to an EC2 instance network interface
 
+## Modify UserData
+* Technique
+  * T1108 Redundant Access
+  * T1089 Disabling Security Tools
+  * T1496 Resource Hijacking
+* Tactic
+  * TA0003 Persistence
+  * TA0005 Defensive Evasion
+* General
+  * Tampering / Defacement
+  * Data exfiltration
+  * Secrets collection
+  * Pivot from trusted access
+
+An EC2 instance will execute UserData with root-level permissions on start/re-start. The instance must be in a stopped state to configure the userdata update.
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname = 'ModifyInstanceAttribute'
+and requestParameters like '%userData%'
+```
 
 ## Disruption and Evasion
-
-
 
 ### CloudTrail
 * Technique
@@ -422,7 +466,9 @@ ModifyInstanceAttribute | in this context, may be used to attach a security grou
 * GuardDuty Findings:
   * Stealth:IAMUser/CloudTrailLoggingDisabled
   * Stealth:IAMUser/LoggingConfigurationModified
-
+* Pacu:
+  * ```detection__disruption``` | `DeleteTrail` (del), `StopLogging` (dis), UpdateTrail (min)
+ 
 #### CloudTrail Disruption
 ```
 select *
@@ -444,12 +490,15 @@ To-do:
 - [ ] bucket tampering
 
 ### Config
+
+#### Disrupt Config Recording, Evaluation, and Remediation
 * Technique
   * T1089 Disabling Security Tools
 * Tactic
   * TA0005 Defensive Evasion
+* Pacu
+  * ```detection__disruption``` | `DeleteConfigurationRecorder` (del), `StopConfigurationRecorder` (dis)
 
-#### Disrupt Config Recording, Evaluation, and Remediation
 > CloudTrail may still log resource configuration actions
 > Goals here are to prevent resource configuration history (for forensics), non-compliance detection, and remediation
 > Offensive capability may be introduced through Systems Manager Automation as remediation action
@@ -497,8 +546,21 @@ To-do:
 - [ ] Explain use of AWS Config role for privilege escalation
 
 ### GuardDuty
+GuardDuty is AWS' managed threat detection services. The service evaluates VPC Flow Logs, CloudTrail, and Route53 query logs using signature and machine learning-backed detection methods. There are numerous methods for bypassing detection both through GuardDuty re-configuration and operating within its blind spots.
 
 #### GuardDuty Disruption
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
+* Pacu
+  * ```guardduty__whitelist_ip``` | UpdateIPSet
+  * ```detection__disruption``` | DeleteDetector, UpdateDetector --no-enable
+
+> `Disable GuardDuty` in the Web console translates to the `DeleteDetector` API call and Pacu's `Delete` option
+
+> `Suspend GuardDuty` in the Web console translates to the `UpdateDetector --no-enable` API call and Pacu's `Disable` option
+
 ```
 select *
 from cloudtrail_000000000000
@@ -512,18 +574,18 @@ order by eventtime desc
 
 Action | Impact
 ------------ | -------------
-CreateFilter | Bypass detection. Exempts findings (auto-archive)
-CreateIPSet | Bypass detection. Exempts a potentially malicious IP as trusted
+CreateFilter | Evate detection. Exempts findings (auto-archive)
+CreateIPSet | Evate detection. Exempts a potentially malicious IP as trusted
 CreateSampleFindings | Chaos. Flood GuardDuty with sample findings as a diversion
 CreateThreatIntelSet | Chaos. Flood GuardDuty with false positives as a diversion
-DeleteDetector | Bypass detection
-DeleteMembers | Bypass detection. Master unaware of member findings. Significant impact if event handling for findings is handled only at the master.
+DeleteDetector | Evate detection
+DeleteMembers | Evate detection. Master unaware of member findings. Significant impact if event handling for findings is handled only at the master.
 DeletePublishingDestination | Disrupt event flow for threat findings
 DeleteThreatIntelSet | Custom IP threat list not evaluated
 DisassociateFromMasterAccount | Bypass detection. Master unaware of member findings
-DisassociateMembers | Bypass detection. Master unaware of member findings
+DisassociateMembers | Evate detection. Master unaware of member findings
 StopMonitoringMembers | Master unaware of member findings
-UpdateDetector | Bypass detection. set -no-enable
+UpdateDetector | Evate detection. set -no-enable
 UpdateFilter | see CreateFilter
 UpdateIPSet | see CreateIPSet
 UpdatePublishingDestination | see DeletePublishingDestination
@@ -541,6 +603,30 @@ and eventname IN ('ListMembers','GetMembers',
 'ListThreatIntelSets','GetThreatIntelSet')
 order by eventtime desc
 ```
+
+
+### IAM Access Analyzer
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('CreateArchiveRule','DeleteAnalyzer',
+'UpdateArchiveRule','UpdateFindings')
+order by eventtime desc
+```
+
+Action | Impact
+------------ | -------------
+CreateArchiveRule | Evade detection. Auto-archive matched findings
+DeleteAnalyzer | Evade detection. Suppress all findings
+UpdateArchiveRule | Evade detection. Auto-archive matched findings
+UpdateFindings | Evate detection. Archive sepcific findings
+
 ### Macie(2)
 > This section applies to the new Macie ```macie2.amazonaws.com``` which is not Macie "classic"
 ```

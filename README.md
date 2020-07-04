@@ -620,12 +620,29 @@ and eventname IN ('CreateArchiveRule','DeleteAnalyzer',
 order by eventtime desc
 ```
 
+> Note: `organizations.amazonaws.com` has an API action for `DeregisterDelegatedAdministrator`
+
 Action | Impact
 ------------ | -------------
 CreateArchiveRule | Evade detection. Auto-archive matched findings
 DeleteAnalyzer | Evade detection. Suppress all findings
 UpdateArchiveRule | Evade detection. Auto-archive matched findings
 UpdateFindings | Evate detection. Archive sepcific findings
+
+### Inspector
+* Technique
+  * T1089 Disabling Security Tools
+* Tactic
+  * TA0005 Defensive Evasion
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN ('DeleteAssessmentRun','DeleteAssessmentTarget',
+'DeleteAssessmentTemplate','UnsubscribeFromEvent','UpdateAssessmentTarget')
+order by eventtime desc
+```
 
 ### Macie(2)
 > This section applies to the new Macie ```macie2.amazonaws.com``` which is not Macie "classic"

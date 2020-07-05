@@ -646,7 +646,6 @@ and eventname IN ('ListMembers','GetMembers',
 order by eventtime desc
 ```
 
-
 ### IAM Access Analyzer
 * Technique
   * T1089 Disabling Security Tools
@@ -722,7 +721,6 @@ DisableOrganizationAdminAccount | Remove delegated administration account for Ma
 UpdateClassificationJob | Bypass detection by removing scanned resources
 UpdateFindingsFilter | Bypass detection by suppressing findings
 
-
 ### EC2
 
 #### Disrupt VPC Flow Logs
@@ -743,6 +741,73 @@ and eventname = 'DeleteFlowLogs'
 Action | Impact
 ------------ | -------------
 DeleteFlowLogs | Bypass detection by disabling collection of net flow
+
+### SecurityHub
+> https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awssecurityhub.html
+
+> https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awssecurityhub.html
+
+> More info: https://aws.amazon.com/security-hub/faqs/
+
+#### Terminology
+Term | Description
+------------ | ------------- 
+Insight | saved findings filter
+Master | designated account for security hub configuration and findings aggregation
+Member | account associated with a master for findings forwarding and inheritence of configurations
+Standard | collection of controls that may be enabled/disabled
+Target |
+
+#### API Actions
+
+Action | Type | Impact
+------------ | ------------- | -------------
+BatchDisableStandards | service | suppression of detection; deletes associated Config Rules
+BatchUpdateFindings | finding | suppression of findings
+DeleteActionTarget | service | suppression of alerting
+DeleteInsight | finding | suppression of existing findings filter
+DeleteMembers | service | sever master-member reporting to suppress findings alerting
+DisableImportFindingsForProduct | service | suppress findings from source detection product
+DisableSecurityHub | service | suppression of detection and alerting
+DisassociateFromMasterAccount | service | sever master-member reporting to suppress findings alerting
+DisassociateMembers | service | sever master-member reporting to suppress findings alerting
+UpdateActionTarget | service | suppression of alerting
+UpdateFindings | finding | suppression of existing findings
+UpdateInsight | finding | see DeleteInsight
+UpdateStandardsControl | service | suppression of findings detection
+
+#### SecurityHub Service Disruption
+* Technique
+  * T1089 Disabling Security Tools
+  * T1054 Indicator Blocking
+* Tactic
+  * TA0005 Defensive Evasion
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'securityhub.amazonaws.com'
+and eventname in ('BatchDisableStandards',
+'DeleteActionTarget','DeleteMembers',
+'DisableImportFindingsForProduct','DisableSecurityHub',
+'DisassociateFromMasterAccount','DisassociateMembers',
+'UpdateActionTarget','UpdateStandardsControl')
+```
+#### SecurityHub Findings Disruption
+* Technique
+  * T1054 Indicator Blocking
+* Tactic
+  * TA0005 Defensive Evasion
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'securityhub.amazonaws.com'
+and eventname in ('BatchUpdateFindings',
+'DeleteInsight',
+'UpdateFindings','UpdateInsight')
+```
 
 ### Web Application Firewall (WAF)
 * Technique
@@ -813,5 +878,4 @@ eventid | globally unique CloudTrail event ID, worth remembering for easier retr
 * https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/
 * https://medium.com/voogloo/which-cloud-trail-calls-are-important-for-security-teams-26003d9939ec
 * https://github.com/elastic/detection-rules/tree/main/rules/aws
-
-
+* https://github.com/duo-labs/cloudtrail-partitioner

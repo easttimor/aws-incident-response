@@ -1,18 +1,59 @@
 # CloudTrail Queries using Athena
 
-This page is a collection of useful things to look for in CloudTrail. Filters may be created to alert to these actions. The queries may also prove useful for threat hunting and incidend response.
+This project explores useful CloudTrail events that support incident response and detection of misconfigurations. Documenting the queries and filters used to identify these CloudTrail events helps to:
 
-While these same concepts/capabilities may be implemented outside of Athena, this page's examples are SQL and leverage Athena tables and partitions.
+* build a timeline of events
+* understand the scope of the incident
+* identify indicators of compromise
+* decrease time to containment and recovery
 
-Start by implementing Cloudtrail Partitioner. The SQL "tables" shown below are partitioned by account to include year, month, and day. Partitions act like an index, enabling Athena to query smaller data sets. This query efficiency has the potential to significantly improve query speed and reduce cost.
-Including year, month, and day greatly improves performance and data costs. Tweak queries as needed for the appropriate time windows.
+Mis-configurations are important events to identify early. These configurations may introduce a vulnerability, but may also be an indicator of compromise. 
+
+Whether executed manually or by automating, this information may be used to develop incident response playbooks. These types of formalization activities promote a consistent, efficient, and effective response to security incidents. 
 
 To-do:
 - [ ] more service coverage (particularly network and storage)
 - [ ] consistent mapping to ATT&CK
-- [ ] Event filter library (in this repo), automated detection and alerting
+- [ ] CloudWatch Metrics Filters - equivalent filters for existing EventBridge filters
 
-## Access Key Exposure
+## Why Athena?
+CloudTrail logs should be stored and archived in S3, where they are essentially useless unless integrated with another product or service. Amazon Athena allows you to query these JSON-formatted logs using standard SQL. This approach gives access to a potentially massive amount of CloudTrail data without the cost and effort of implementing Splunk, ElasticSearch, or storing in another database.
+
+### Getting Started
+Athena charges for the data scanned for each query. You may only return one record, but will be charged for all data queried to match that record. By default, S3 data is not indexed, so Athena will inefficiently scan a LOT of data. There are also S3 charges (GET requests) that factor in at larger scale. 
+> https://aws.amazon.com/athena/pricing/
+
+**But, we can make Athena faster and cost effective by creating partitions.**
+Implement CloudTrail Partitioner. By default, Partitioner will create a virtual table for each AWS account so you don't scan an entire aggregated bucket. Partitioner will also add the following partitions:
+* region
+* year
+* month
+* day
+
+Including these partitions in your SQL statements, as shown throughout this project, significantly improves query performance by limiting the amount of data scanned. Limiting the amount of data scanned saves money. For ad-hoc queries, such as those used for incident response, this cost is negligible. 
+> https://github.com/duo-labs/cloudtrail-partitioner
+
+### Alternatives
+* query direct from CloudTrail: no cost, very limiting query syntax
+* query direct from CloudWatch Logs: higher cost than S3, fast query performance but weaker query syntax
+* ingest logs in Splunk, ElasticSearch, etc: expensive
+
+## Why EventBridge?
+> EventBridge builds on CloudWatch Events and uses the same APIs. This is essentially CloudWatch Events.
+
+Querying CloudTrail, even if automated, is best suited for ad-hoc **response** to finding misconfigurations and investigating incidents. Many of these configuration-related indicators of compromise can be detected in near real time. EventBridge allows for these pre-defined CloudTrail events to be filtered and integrated with numerous alerting methods (e.g. SNS) and event flows (e.g. Lambda, 3rd party SIEM).
+
+This approach is independent of the Athena queries, but both approaches complement each other.
+
+The Terraform section of this project repo includes deployable event filters with a basic SNS notification. Where applicable, Athena queries on this page are reflected in these event filters.
+
+EventBridge is cheap for this use case.
+> https://aws.amazon.com/eventbridge/pricing/
+
+# Incidents
+The following section builds a collection of common incidents and the Athena queries that may prove useful in response. These queries attempt to explain timeline, scope,  impact, and surface indicators of compromise. 
+
+## Incident: Access Key Exposure
 We are looking for the following:
 * what actions has this key been used for, historically and currently?
 * has this key been used from any odd locations?
@@ -56,7 +97,7 @@ where sourceip = 'seeAbove'
 and year = '####'
 and month = '##'
 ```
-## EC2 Instance Compromise
+## Incident: EC2 Instance Compromise
 EC2 instances may have an IAM Role attached to them. The combination of the instance and the role is called an "instance profile". When the role is assumed, the EC2 instance ID is used as the session name part of the Principal ARN in CloudTrail. We can identify actions of EC2 instances using the clause ```useridentity.principalid like '%:i-%'``` or a specific EC2 instance ```useridentity.principalid like '%:i-00000000000000000'```
 
 The actions of EC2 instances will typically be repetitive and persistent, because all actions are presumed to be initiated by software and not a human. Play close attention to any anomalous API calls. An attacker with access to an EC2 instance has access to any IAM permissions granted to that instance via the instance profile.
@@ -143,7 +184,8 @@ group by useridentity.principalid,eventsource,eventname
 order by total desc
 limit 25
 ```
-## General Purpose
+## General Purpose Queries
+These queries are useful for exploring potential issues and building upon for threat hunting.
 
 ### Most common API actions for a given day
 ```

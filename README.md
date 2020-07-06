@@ -1,4 +1,6 @@
-# CloudTrail Queries using Athena
+# AWS Incident Response 
+## Investigation of API activity using Athena
+## and notification of actions using EventBridge
 
 This project explores useful CloudTrail events that support incident response and detection of misconfigurations. Documenting the queries and filters used to identify these CloudTrail events helps to:
 
@@ -15,6 +17,9 @@ To-do:
 - [ ] more service coverage (particularly network and storage)
 - [ ] consistent mapping to ATT&CK
 - [ ] CloudWatch Metrics Filters - equivalent filters for existing EventBridge filters
+- [ ] more language addressing the AWS Incident Response doc (June 2020) and Well Architected Lab
+- [ ] response playbooks?
+- [ ] bring VPC FlowLogs or any other log source in scope?
 
 ## Why Athena?
 CloudTrail logs should be stored and archived in S3, where they are essentially useless unless integrated with another product or service. Amazon Athena allows you to query these JSON-formatted logs using standard SQL. This approach gives access to a potentially massive amount of CloudTrail data without the cost and effort of implementing Splunk, ElasticSearch, or storing in another database.
@@ -52,6 +57,40 @@ EventBridge is cheap for this use case.
 
 # Incidents
 The following section builds a collection of common incidents and the Athena queries that may prove useful in response. These queries attempt to explain timeline, scope,  impact, and surface indicators of compromise. 
+
+## General IAM Investigation
+> Some of the queries in this section were inspired by the following
+> Reference: https://wellarchitectedlabs.com/security/300_labs/300_incident_response_with_aws_console_and_cli/2_iam/
+
+### API Errors
+```
+select eventTime, eventSource, eventName, errorCode, errorMessage, responseElements, awsRegion, userIdentity.arn, sourceIPAddress, userAgent
+from from cloudtrail_000000000000
+and year = '####' and month = '##'
+and errorCode in ('Client.UnauthorizedOperation','Client.InvalidPermission.NotFound','Client.OperationNotPermitted','AccessDenied')
+order by eventTime desc
+limit 25
+```
+
+### Activity from potentially malicious source ip
+```
+select eventTime, eventSource, eventName, awsRegion, userIdentity.arn, sourceIPAddress, userAgent
+from from cloudtrail_000000000000
+and year = '####' and month = '##'
+and sourceIPAddress = 'x.x.x.x'
+order by eventTime desc
+limit 25
+```
+
+### S3 ListBuckets 
+The ListBuckets API action, used to enumerate buckets within an AWS account, is a potential indicator of compromise.
+```
+select eventTime, eventSource, eventName, awsRegion, errorCode, errorMessage, userIdentity.arn, sourceIPAddress, userAgent
+from from cloudtrail_000000000000
+and year = '####' and month = '##'
+and eventName = 'ListBuckets'
+limit 25
+```
 
 ## Incident: Access Key Exposure
 We are looking for the following:

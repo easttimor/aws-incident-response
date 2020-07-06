@@ -112,7 +112,7 @@ from cloudtrail_000000000000
 where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
 and year = '####' and month = '##'
 ```
-### Look for user agent anomalies
+### Look for user agent anomalies for key
 ```
 select useragent, count(*) as total
 from cloudtrail_000000000000
@@ -121,27 +121,52 @@ and year = '####' and month = '##'
 group by useragent
 order by total desc
 ```
+
 ```
 select eventtime, eventsource, eventname, sourceip, errorcode
 from cloudtrail_000000000000
 where useragent = 'seeAbove'
 and year = '####' and month = '##'
 ```
-### Look for source ip anomalies
+
+Group by user to include all access for a single user. This approach would be helpful if keys are rotated or a console login is used.
+> This value format is for an IAM user and not an assumed role
 ```
-select sourceip, count(*) as total
+select useragent, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##'
+and userIdentity.userName = 'xxxxxx'
+group by useragent
+order by total desc
+```
+### Look for source ip anomalies
+Group by sourceIpAddress for a specific access key.
+```
+select sourceipaddress, count(*) as total
 from cloudtrail_000000000000
 where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
 and year = '####' and month = '##'
-group by sourceip
+group by sourceipaddress
 order by total desc
 ```
+
 ```
 select eventtime, eventsource, eventname, errorcode, useragent
 from cloudtrail_000000000000
 where sourceip = 'seeAbove'
 and year = '####'
 and month = '##'
+```
+
+Group by user to include multiple credentials for a single user. This approach would be helpful if keys are rotated or a console login is used.
+> This value format is for an IAM user and not an assumed role
+```
+select sourceipaddress, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##'
+and userIdentity.userName = 'xxxxxx'
+group by sourceipaddress
+order by total desc
 ```
 ## Incident: EC2 Instance Compromise
 EC2 instances may have an IAM Role attached to them. The combination of the instance and the role is called an "instance profile". When the role is assumed, the EC2 instance ID is used as the session name part of the Principal ARN in CloudTrail. We can identify actions of EC2 instances using the clause ```useridentity.principalid like '%:i-%'``` or a specific EC2 instance ```useridentity.principalid like '%:i-00000000000000000'```
@@ -154,7 +179,7 @@ The actions of EC2 instances will typically be repetitive and persistent, becaus
 > The CloudTrail UI provides `resource name` as search criteria. Note that `resource name` is not an actual key in the JSON so they're abstracting some query magic. Relevant events may not be included in this CloudTrail API query - otherwise stated, the below Athena query will show you more events for better or worse.
 
 ```
-select eventTime, eventName, eventSource
+select eventTime, eventName, eventSource, userIdentity.arn
 from cloudtrail_000000000000
 where year = 'xxxx' and month = 'xx' and day = 'xx'
 and (requestParameters like '%i-xxxxxxxxxxxxxxxxx%' or responseElements like '%i-xxxxxxxxxxxxxxxxx%')

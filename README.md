@@ -154,7 +154,7 @@ order by total desc
 ```
 select eventtime, eventsource, eventname, errorcode, useragent
 from cloudtrail_000000000000
-where sourceip = 'seeAbove'
+where sourceipaddress = 'seeAbove'
 and year = '####'
 and month = '##'
 ```

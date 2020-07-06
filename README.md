@@ -1,7 +1,8 @@
 # AWS Incident Response 
-## Investigation of API activity using Athena
-## and notification of actions using EventBridge
+Investigation of API activity using Athena
+and notification of actions using EventBridge
 
+## Introduction
 This project explores useful CloudTrail events that support incident response and detection of misconfigurations. Documenting the queries and filters used to identify these CloudTrail events helps to:
 
 * build a timeline of events

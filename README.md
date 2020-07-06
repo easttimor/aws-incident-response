@@ -98,6 +98,13 @@ We are looking for the following:
 * has this key been used from any odd locations?
 * has this key been used from any odd user agents?
 
+### Find IAM Principal and AWS Account associated with Access Key
+select useridentity.principalId, useridentity.arn, useridentity.accountId, region
+from cloudtrail_000000000000
+where year = '####' and month = '##'
+and useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
+limit 5
+
 ### All key usage
 ```
 select eventtime, eventsource, eventname, sourceip, errorcode, useragent

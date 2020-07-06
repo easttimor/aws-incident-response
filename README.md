@@ -189,7 +189,7 @@ and eventsource = 'ec2.amazonaws.com'
 limit 25
 ```
 
-### Most common API calls by an instance (instance profile / attached IAM Role)
+### EC2 Instance profile - most frequent API calls
 ```
 select eventname, count(*) as total
 from cloudtrail_000000000000
@@ -199,7 +199,8 @@ group by eventname
 order by total desc
 limit 25
 ```
-### ...that were denied
+
+### EC2 Instance profile - most denied API calls 
 ```
 select eventname, count(*) as total
 from cloudtrail_000000000000
@@ -210,7 +211,8 @@ group by eventname
 order by total desc
 limit 25
 ```
-### EC2 instances getting the most denied actions
+
+### All EC2 Instance Profiles - most denied instance profiles
 ```
 select useridentity.principalid, count(*) as total
 from cloudtrail_000000000000
@@ -221,7 +223,8 @@ group by useridentity.principalid
 order by total desc
 limit 25
 ```
-### Collectively, what actions are getting denied the most for EC2 instances
+
+### All EC2 Instance Profiles - most denied event names
 ```
 select eventsource,eventname,count(*) as total
 from cloudtrail_000000000000
@@ -233,7 +236,9 @@ group by eventsource,eventname
 order by total desc
 limit 25
 ```
-### Are any EC2 instances interacting with IAM?
+
+### EC2 Instance Profile interacting with IAM
+EC2 instances rarely have a need for IAM actions. Include an `and eventname <>` clause if legitimate actions are found that muddy the search results.
 ```
 select useridentity.principalid,eventsource,eventname,count(*) as total
 from cloudtrail_000000000000
@@ -244,7 +249,9 @@ group by useridentity.principalid,eventsource,eventname
 order by total desc
 limit 25
 ```
-### Are any EC2 instances enumarating S3?
+
+### EC2 Instance Profile enumerating S3
+EC2 instances should know exactly which S3 buckets to they need. The ListBuckets action is a strong indicator of compromise...or bad development practices. 
 ```
 select useridentity.principalid,eventsource,eventname,count(*) as total
 from cloudtrail_000000000000
@@ -256,6 +263,7 @@ group by useridentity.principalid,eventsource,eventname
 order by total desc
 limit 25
 ```
+
 ## General Purpose Queries
 These queries are useful for exploring potential issues and building upon for threat hunting.
 
@@ -275,6 +283,7 @@ where year = '####' and month = '##' and day = '##'
 group by errorcode
 order by total desc
 ```
+
 #### Principals getting denied the most
 ```
 select useridentity.principalid, count(*) as deniedactions
@@ -285,6 +294,7 @@ group by useridentity.principalid
 order by deniedactions desc
 limit 25
 ```
+
 ### Common denied actions from specific principal (see above)
 ```
 select eventname, count(*) as total
@@ -321,10 +331,12 @@ where year = '####' and month = '##'
 and eventname = 'ConsoleLogin'
 and useridentity.type = 'Root'
 ```
+
 ### Remove MFA from an IAM User
 While IAM Policy may still include a condiion that requires MFA, removing MFA from an IAM User enables a pivot to that principal.
 
 * Technique: T1531 Account Access Removal
+
 ```
 select *
 from cloudtrail_000000000000
@@ -335,6 +347,7 @@ and eventname IN ('DeactivateMFADevice', 'DeleteVirtualMFADevice')
 ### All IAM Changes
 * GuardDuty:
   * Persistence:IAMUser/UserPermissions
+
 ```
 select useridentity.principalid, eventname, count(*) as total
 from cloudtrail_000000000000
@@ -352,6 +365,7 @@ IAM Policy updates used to expand permissions of associated principals (IAM User
 * RhinoSec:
   * (1) Creating a new policy version
   * (2) Setting the default policy version to an existing version
+
 ```
 select *
 from cloudtrail_000000000000
@@ -368,6 +382,7 @@ order by eventtime desc
 * Pacu:
   * ```iam__backdoor_users_keys```
   * ```iam__backdoor_users_password```
+
 ```
 select *
 from cloudtrail_000000000000
@@ -382,6 +397,7 @@ and eventName IN ('CreateAccessKey',
 )
 order by eventtime desc
 ```
+
 ### Privilege Escalation: Adding permissions
 Permission expansion may include disassociating a principal from an IAM Policy due to the removal of explicit Deny effects.
 * Technique: 
@@ -815,11 +831,10 @@ Action | Impact
 DeleteFlowLogs | Bypass detection by disabling collection of net flow
 
 ### SecurityHub
-> https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awssecurityhub.html
 
-> https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awssecurityhub.html
-
-> More info: https://aws.amazon.com/security-hub/faqs/
+References:
+* https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awssecurityhub.html
+* More info: https://aws.amazon.com/security-hub/faqs/
 
 #### Terminology
 Term | Description
@@ -866,11 +881,13 @@ and eventname in ('BatchDisableStandards',
 'DisassociateFromMasterAccount','DisassociateMembers',
 'UpdateActionTarget','UpdateStandardsControl')
 ```
+
 #### SecurityHub Findings Disruption
 * Technique
   * T1054 Indicator Blocking
 * Tactic
   * TA0005 Defensive Evasion
+
 ```
 select *
 from cloudtrail_000000000000
@@ -897,6 +914,7 @@ and eventname in ('DeleteFirewallManagerRuleGroups','DeleteIPSet',
 'PutLoggingConfiguration','PutPermissionPolicy',
 'UpdateIPSet','UpdateRegexPatternSet','UpdateRuleGroup','UpdateWebACL')
 ```
+
 Action | Impact
 ------------ | -------------
 DeleteFirewallManagerRuleGroups | rexpand network access; if not managed by Firewall manager
@@ -915,11 +933,11 @@ UpdateRuleGroup | expand network access
 UpdateWebACL | expand network access
 
 ## Useful CloudTrail fields
-> https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html
 
-> https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-user-identity.html
-
-> https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-examples.html#error-code-and-error-message
+References
+* https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html
+* https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-user-identity.html
+* https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-examples.html#error-code-and-error-message
 
 Key | Values / Notes
 ------------ | -------------
@@ -945,9 +963,9 @@ responseElements | for create,update,delete actions
 eventtype | AwsApiCall, AwsServiceEvent, AwsConsoleSignin
 eventid | globally unique CloudTrail event ID, worth remembering for easier retrieval of valuable events
 
-
 ## Credit and References
 * https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/
 * https://medium.com/voogloo/which-cloud-trail-calls-are-important-for-security-teams-26003d9939ec
 * https://github.com/elastic/detection-rules/tree/main/rules/aws
 * https://github.com/duo-labs/cloudtrail-partitioner
+* https://wellarchitectedlabs.com/security/

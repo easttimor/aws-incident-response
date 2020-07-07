@@ -140,8 +140,10 @@ and userIdentity.userName = 'xxxxxx'
 group by useragent
 order by total desc
 ```
+
 ### Look for source ip anomalies
 Group by sourceIpAddress for a specific access key.
+
 ```
 select sourceipaddress, count(*) as total
 from cloudtrail_000000000000
@@ -161,6 +163,7 @@ and month = '##'
 
 Group by user to include multiple credentials for a single user. This approach would be helpful if keys are rotated or a console login is used.
 > This value format is for an IAM user and not an assumed role
+
 ```
 select sourceipaddress, count(*) as total
 from cloudtrail_000000000000
@@ -169,6 +172,7 @@ and userIdentity.userName = 'xxxxxx'
 group by sourceipaddress
 order by total desc
 ```
+
 ## Incident: EC2 Instance Compromise
 EC2 instances may have an IAM Role attached to them. The combination of the instance and the role is called an "instance profile". When the role is assumed, the EC2 instance ID is used as the session name part of the Principal ARN in CloudTrail. We can identify actions of EC2 instances using the clause ```useridentity.principalid like '%:i-%'``` or a specific EC2 instance ```useridentity.principalid like '%:i-00000000000000000'```
 
@@ -856,6 +860,71 @@ and eventname = 'DeleteFlowLogs'
 Action | Impact
 ------------ | -------------
 DeleteFlowLogs | Bypass detection by disabling collection of net flow
+
+### S3
+* Tactic
+  * TA0009 Collection
+  * TA0010 Exfiltration
+* Technique
+  * T1530 Data from Cloud Storage Object
+  * T1029 Scheduled Transfer
+  * T1537 Transfer Data to Cloud Account
+
+#### Permissions Update
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 's3.amazonaws.com'
+and eventname in (
+    'PutAccessPointPolicy',
+    'PutAccountPublicAccessBlock',
+    'PutBucketAcl',
+    'PutBucketCORS',
+    'PutBucketPolicy',
+    'PutBucketPublicAccessBlock',
+    'PutObjectAcl'
+)
+```
+
+Action | Type | Impact
+------------ | -------------
+PutAccessPointPolicy | access permissions | expand permissions, data exfil
+PutAccountPublicAccessBlock | access permissions |  expand permissions, data exfil
+PutBucketAcl | access permissions |  expand permissions, data exfil
+PutBucketCORS | access permissions |  expand permissions, data exfil
+PutBucketPolicy | access permissions |  expand permissions, data exfil
+PutBucketPublicAccessBlock | access permissions |  expand permissions, data exfil
+PutObjectAcl | access permissions |  expand permissions, data exfil
+
+#### Data Management
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 's3.amazonaws.com'
+and eventname in (
+    'PutBucketLogging',
+    'PutBucketWebsite',
+    'PutEncryptionConfiguration',
+    'PutLifecycleConfiguration',
+    'PutReplicationConfiguration',
+    'ReplicateObject',
+    'RestoreObject'
+)
+```
+
+Action | Type | Impact
+------------ | -------------
+PutBucketLogging | data management | suppress logging
+PutBucketWebsite | data management | potential to expose data for exfil
+PutEncryptionConfiguration | data management | disable encryption
+PutLifecycleConfiguration | data management | transfer objects to an accessible target resource, data exfil
+PutReplicationConfiguration | data management | transfer objects to an accessible target resource, data exfil
+ReplicateObject | data management | transfer objects to an accessible target resource, data exfil
+RestoreObject | data management | access potentially sensitve (deleted/archived) data object, secrets access
 
 ### SecurityHub
 

@@ -307,7 +307,7 @@ order by total desc
 ```
 
 # API Watchlist
-> these are better suited for event driven alerting - future project
+> these are better suited for event driven alerting, and that's what the Terraform in this repo aims to provide.
 
 ## IAM
 ### Root Credential Use
@@ -345,7 +345,7 @@ and eventname IN ('DeactivateMFADevice', 'DeleteVirtualMFADevice')
 ```
 
 ### All IAM Changes
-* GuardDuty:
+* GuardDuty
   * Persistence:IAMUser/UserPermissions
 
 ```
@@ -362,7 +362,7 @@ order by total desc
 ### Privilege Escalation: IAM Policy
 IAM Policy updates used to expand permissions of associated principals (IAM Users, IAM Roles).
 
-* RhinoSec:
+* RhinoSec
   * (1) Creating a new policy version
   * (2) Setting the default policy version to an existing version
 
@@ -413,6 +413,7 @@ Permission expansion may include disassociating a principal from an IAM Policy d
   * (11) Creating/updating an inline policy for a group
   * (12) Creating/updating an inline policy for a role
   * (13) Adding a user to a group
+
 ```
 select *
 from cloudtrail_000000000000
@@ -427,10 +428,13 @@ order by eventtime desc
 ```
 
 ### Privilege Escalation: Expand Access to an IAM Role
-* RhinoSec:
+* RhinoSec
   * (14) Updating the AssumeRolePolicyDocument of a role
-* Pacu:
+* Pacu
   * ```iam__backdoor_assume_role```
+
+> Updating a trust policy (`UpdateAssumerolePolicy`) allows a service, local account principal, or external account to assume the associate IAM Role and its permissions.
+
 ```
 select *
 from cloudtrail_000000000000
@@ -451,6 +455,10 @@ UpdateAssumeRolePolicy | Persistence / Privilege escalation allowing an IAM User
   * T1098 Account Manipulation
   * T1199 Trusted Relationship
 
+> Adding a new identity provider (`CreateSAMLProvider`)  also requires adding or updating an IAM's Role's trust policy.
+
+> Updating the metadata (`UpdateSAMLProvider`) for a SAML IdP would hijack an existing trusted relationship, but break existing federated access.
+
 ```
 select *
 from cloudtrail_000000000000
@@ -460,6 +468,7 @@ and eventName IN ('CreateSAMLProvider','UpdateSAMLProvider','DeleteSAMLProvider'
 'AddClientIDToOpenIDConnectProvider','RemoveClientIDFromOpenIDConnectProvider')
 order by eventtime desc
 ```
+
 ## S3
 * Tactics
   * TA0005 Defense Evasion
@@ -481,6 +490,7 @@ and eventname in ('DeleteBucket','DeleteBucketPolicy',
 'RestoreObject')
 order by eventtime desc
 ```
+
 Action | Impact
 ------------ | -------------
 DeleteBucket | Stealth, if bucket contains logs
@@ -504,7 +514,7 @@ RestoreObject | Access an archived object
 * Tactic
   * TA0040 Impact
 
-#### Account-wide Setting
+#### EBS Encryption Account-wide Setting
 ```
 select *
 from cloudtrail_000000000000
@@ -556,6 +566,7 @@ and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress'
 'CreateSecurityGroup','ModifyInstanceAttribute')
 order by eventtime desc
 ```
+
 Action | Impact
 ------------ | -------------
 AuthorizeSecurityGroupIngress | expand EC2 isntance inbound traffic permissions (persistance, exfil, or exploit)
@@ -577,7 +588,8 @@ ModifyInstanceAttribute | in this context, may be used to attach a security grou
   * Secrets collection
   * Pivot from trusted access
 
-An EC2 instance will execute UserData with root-level permissions on start/re-start. The instance must be in a stopped state to configure the userdata update.
+> An EC2 instance will execute UserData with root-level permissions on start/re-start. The instance must be in a stopped state to configure the userdata update.
+
 ```
 select *
 from cloudtrail_000000000000
@@ -632,6 +644,7 @@ To-do:
 > CloudTrail may still log resource configuration actions
 > Goals here are to prevent resource configuration history (for forensics), non-compliance detection, and remediation
 > Offensive capability may be introduced through Systems Manager Automation as remediation action
+
 ```
 select *
 from cloudtrail_000000000000
@@ -648,6 +661,7 @@ and eventname IN ('DeleteConfigRule','DeleteOrganizationConfigRule',
 'PutRetentionConfiguration',
 'StopConfigurationRecorder')
 ```
+
 Action | Impact
 ------------ | -------------
 DeleteConfigRule | Update to not detect non-compliant resources configurations

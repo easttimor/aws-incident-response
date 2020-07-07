@@ -889,7 +889,7 @@ and eventname in (
 ```
 
 Action | Type | Impact
------------- | -------------
+------------ | ------------- | -------------
 PutAccessPointPolicy | access permissions | expand permissions, data exfil
 PutAccountPublicAccessBlock | access permissions |  expand permissions, data exfil
 PutBucketAcl | access permissions |  expand permissions, data exfil
@@ -917,7 +917,7 @@ and eventname in (
 ```
 
 Action | Type | Impact
------------- | -------------
+------------ | -------------| -------------
 PutBucketLogging | data management | suppress logging
 PutBucketWebsite | data management | potential to expose data for exfil
 PutEncryptionConfiguration | data management | disable encryption

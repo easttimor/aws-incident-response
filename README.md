@@ -348,6 +348,7 @@ and eventname IN ('DeactivateMFADevice', 'DeleteVirtualMFADevice')
 * GuardDuty
   * Persistence:IAMUser/UserPermissions
 
+The IAM API has numerous actions for establishing persistence and expanding permissions. The following query removes read only actions. 
 ```
 select useridentity.principalid, eventname, count(*) as total
 from cloudtrail_000000000000
@@ -359,6 +360,16 @@ and eventname not like 'Generate%'
 group by useridentity.principalid, eventname
 order by total desc
 ```
+
+### Creation of IAM Principals
+```
+select useridentity.principalid, eventname, count(*) as total
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventsource = 'iam.amazonaws.com'
+and evenname in ('CreateUser','CreateRole','CreateServiceLinkedRole')
+```
+
 ### Privilege Escalation: IAM Policy
 IAM Policy updates used to expand permissions of associated principals (IAM Users, IAM Roles).
 
@@ -490,6 +501,8 @@ and eventname in ('DeleteBucket','DeleteBucketPolicy',
 'RestoreObject')
 order by eventtime desc
 ```
+
+> For object access logging suppression, in addition to `s3:PutBucketLogging` see also `cloudtrail:PutEventSelectors` for logging configuration of data events.
 
 Action | Impact
 ------------ | -------------

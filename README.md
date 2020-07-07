@@ -888,6 +888,7 @@ and eventname in (
 )
 ```
 
+API Actions
 Action | Type | Impact
 ------------ | ------------- | -------------
 PutAccessPointPolicy | access permissions | expand permissions, data exfil
@@ -916,6 +917,7 @@ and eventname in (
 )
 ```
 
+API Actions
 Action | Type | Impact
 ------------ | -------------| -------------
 PutBucketLogging | data management | suppress logging

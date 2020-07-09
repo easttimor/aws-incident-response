@@ -98,22 +98,58 @@ We are looking for the following:
 * what actions has this key been used for, historically and currently?
 * has this key been used from any odd locations?
 * has this key been used from any odd user agents?
+* dig for any signs of established persistence to include or data access
 
-### Find IAM Principal and AWS Account associated with Access Key
+These queries must include all AWS Regions.
+
+### Find the IAM Principal and AWS Account associated with Access Key
+```
 select useridentity.principalId, useridentity.arn, useridentity.accountId, region
 from cloudtrail_000000000000
 where year = '####' and month = '##'
 and useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
-limit 5
+limit 1
+```
 
 ### All key usage
+Looking for high risk events that indicate establishing persistence, escalating permissions, resource creation (denial-of-wallet), data access (exfiltration). These actions may include:
+* iam:CreateUser
+* iam:CreateAccessKey
+* iam:CreateLoginProfile
+* iam:UpdateLoginProfile
+
+Pay attention to all actions identified for priviledge escalation in this document.
 ```
-select eventtime, eventsource, eventname, sourceip, errorcode, useragent
+select eventtime, eventsource, eventname, sourceipaddress, errorcode, useragent
 from cloudtrail_000000000000
 where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
 and year = '####' and month = '##'
 ```
+
+### Activity for a specific IAM User
+`userIdentity.arn` determined from the above query.
+```
+select eventtime, eventsource, eventname, errorcode, sourceipaddress, useragent
+from cloudtrail_000000000000
+where year = '####' and month = '##'
+and userIdentity.arn = 'arn:aws:iam::000000000000:user/xxxxxxxx'
+order by eventtime desc
+```
+
+Limit some noise.
+```
+select eventtime, eventsource, eventname, errorcode, sourceipaddress, useragent
+from cloudtrail_000000000000
+where year = '####' and month = '##'
+and userIdentity.arn = 'arn:aws:iam::000000000000:user/xxxxxxxx'
+and eventName not like 'Describe%'
+and eventName not like 'List%'
+and eventName not like 'Get%'
+order by eventtime desc
+```
+
 ### Look for user agent anomalies for key
+Determine "normal" for user agent string
 ```
 select useragent, count(*) as total
 from cloudtrail_000000000000
@@ -123,11 +159,12 @@ group by useragent
 order by total desc
 ```
 
+Assess activity for a specific user agent string; Conditions may be added to limit to a specific user or credential.
 ```
-select eventtime, eventsource, eventname, sourceip, errorcode
+select eventtime, eventsource, eventname, sourceipaddress, errorcode
 from cloudtrail_000000000000
-where useragent = 'seeAbove'
-and year = '####' and month = '##'
+where year = '####' and month = '##'
+and useragent = 'seeAbove'
 ```
 
 Group by user to include all access for a single user. This approach would be helpful if keys are rotated or a console login is used.
@@ -147,12 +184,13 @@ Group by sourceIpAddress for a specific access key.
 ```
 select sourceipaddress, count(*) as total
 from cloudtrail_000000000000
-where useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
-and year = '####' and month = '##'
+where year = '####' and month = '##'
+and useridentity.accesskeyid = 'AKIAxxxxxxxxxxxxxxxx'
 group by sourceipaddress
 order by total desc
 ```
 
+Assess all activity for a specific source IP, typically one believed to be an adversary in the case of a compromised key.
 ```
 select eventtime, eventsource, eventname, errorcode, useragent
 from cloudtrail_000000000000
@@ -163,7 +201,6 @@ and month = '##'
 
 Group by user to include multiple credentials for a single user. This approach would be helpful if keys are rotated or a console login is used.
 > This value format is for an IAM user and not an assumed role
-
 ```
 select sourceipaddress, count(*) as total
 from cloudtrail_000000000000

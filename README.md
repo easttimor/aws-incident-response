@@ -439,10 +439,11 @@ order by eventtime desc
 select *
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
-and eventName IN ('CreateAccessKey', 
+and eventName IN ('CreateAccessKey', 'UpdateAccessKey',
 'CreateLoginProfile','UpdateLoginProfile',
 'CreateVirtualMFADevice','DeactivateMFADevice','DeleteVirtualMFADevice','EnableMFADevice'
-'CreateServiceSpecificCredential','UpdateServiceSpecificCredential','DeleteServiceSpecificCredential',
+'CreateServiceSpecificCredential','UpdateServiceSpecificCredential',
+'ResetServiceSpecificSredential','DeleteServiceSpecificCredential',
 'UploadServerCertificate','DeleteServerCertificate',
 'UploadSigningCertificate','UpdateSigningCertificate','DeleteSigningCertificate',
 'UploadSSHPublicKey','UpdateSSHPublicKey','DeleteSSHPublicKey'

@@ -598,6 +598,11 @@ ModifyInstanceAttribute | in this context, may be used to attach a security grou
 ## Traffic Mirroring
 Traffic Mirroring is a full packet capture (pcap) capability that may be used by an adversary to exfil secrets and sensitive data from unencrypted internal traffic. Within a VPC a traffic mirroring `session` is established with collection `filter` `rules` that identify what traffic to collect and forward to a `target`. 
 
+* Technique
+  * T1040 Network Sniffing
+* Tactic
+  * TA0006 Credential Access
+
 > https://docs.aws.amazon.com/vpc/latest/mirroring/what-is-traffic-mirroring.html
 > https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-filters.html
 ```

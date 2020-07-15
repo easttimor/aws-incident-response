@@ -579,8 +579,12 @@ order by eventtime desc
 select *
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
-and eventname IN ('AuthorizeSecurityGroupIngress','AuthorizeSecurityGroupEgress'
-'CreateSecurityGroup','ModifyInstanceAttribute')
+and eventname IN (
+    'AuthorizeSecurityGroupIngress',
+    'AuthorizeSecurityGroupEgress'
+    'CreateSecurityGroup',
+    'ModifyInstanceAttribute'
+    )
 order by eventtime desc
 ```
 
@@ -590,6 +594,79 @@ AuthorizeSecurityGroupIngress | expand EC2 isntance inbound traffic permissions 
 AuthorizeSecurityGroupEgress | expand EC2 instance initiated outbound traffic permissions (exfil data or pivot)
 CreateSecurityGroup | supports ingress/egress permissions for any associated EC2 instance
 ModifyInstanceAttribute | in this context, may be used to attach a security group to an EC2 instance network interface
+
+## Traffic Mirroring
+Traffic Mirroring is a full packet capture (pcap) capability that may be used by an adversary to exfil secrets and sensitive data from unencrypted internal traffic. Within a VPC a traffic mirroring `session` is established with collection `filter` `rules` that identify what traffic to collect and forward to a `target`. 
+
+> https://docs.aws.amazon.com/vpc/latest/mirroring/what-is-traffic-mirroring.html
+> https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-filters.html
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN (
+    'CreateTrafficMirrorFilter',
+    'CreateTrafficMirrorFilterRule',
+    'CreateTrafficMirrorSession',
+    'CreateTrafficMirrorTarget'
+    )
+```
+
+Action | Impact
+------------ | -------------
+CreateTrafficMirrorFilter | expand EC2 isntance inbound traffic permissions (persistance, exfil, or exploit)
+CreateTrafficMirrorFilterRule | configures the traffic to capture rules applied to a filter
+CreateTrafficMirrorSession | establishes a packet capture session
+CreateTrafficMirrorTarget | forwards captures traffic to an adversary controlled resource
+
+## Network Routing
+
+> Actions in this category have a high degree of legitimate use and are most helpful when correlated with other IoCs
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN (
+    'CreateRoute',
+    'CreateRouteTable',
+    'DeleteRouteTable',
+    'DeleteRoute',
+    'DisassociateRouteTable',
+    'ReplaceRoute',
+    'ReplaceRouteTableAssociation' 
+    )
+order by eventtime desc
+```
+
+Action | Impact
+------------ | -------------
+CreateRoute | adds a new route (reroute/hijack traffic)
+CreateRouteTable | adds a new route table (reroute/hijack traffic)
+DeleteRouteTable | remove existing routing
+DeleteRoute |  remove existing routing
+DisassociateRouteTable | remove existing routing
+ReplaceRoute | re-route existing traffic flow (hijack)
+ReplaceRouteTableAssociation | re-route traffic (reroute/hijack traffic)
+
+> The following events are less common than routing changes above, but should be correlated with other IoCs
+
+> These events are high impact to a VPC's ingress/egress traffic flow 
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN (
+    'CreateCustomerGateway',
+    'DeleteCustomerGateway',
+    'AttachInternetGateway',
+    'CreateInternetGateway',
+    'DeleteInternetGateway',
+    'DetachInternetGateway'
+)
+order by eventtime desc
+```
 
 ## Modify UserData
 * Technique
@@ -873,7 +950,7 @@ DeleteFlowLogs | Bypass detection by disabling collection of net flow
 #### Permissions Update
 
 ```
-select *
+select eventTime, eventSource, eventName, awsRegion, errorCode, errorMessage, userIdentity.arn, sourceIPAddress, requestParameters
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
 and eventsource = 's3.amazonaws.com'
@@ -886,6 +963,7 @@ and eventname in (
     'PutBucketPublicAccessBlock',
     'PutObjectAcl'
 )
+order by eventTime desc
 ```
 
 Action | Type | Impact
@@ -901,7 +979,7 @@ PutObjectAcl | access permissions |  expand permissions, data exfil
 #### Data Management
 
 ```
-select *
+select eventTime, eventSource, eventName, awsRegion, errorCode, errorMessage, userIdentity.arn, sourceIPAddress, requestParameters
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
 and eventsource = 's3.amazonaws.com'
@@ -914,6 +992,7 @@ and eventname in (
     'ReplicateObject',
     'RestoreObject'
 )
+order by eventTime desc
 ```
 
 Action | Type | Impact

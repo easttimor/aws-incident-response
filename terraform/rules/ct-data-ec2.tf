@@ -11,6 +11,8 @@ module "rule-data-ebs" {
         "ec2.amazonaws.com"
       ],
       "eventName": [
+        "GetPasswordData",
+        "ModifyImageAttribute",
         "ModifySnapshotAttribute"
       ]
     }

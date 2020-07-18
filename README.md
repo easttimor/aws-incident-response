@@ -562,14 +562,26 @@ RestoreObject | Access an archived object
 
 ## EC2
 
-### Enable/Disable EBS Encryption
+### General
+* Tactics
+  * TA0010 Exfiltration
+  * TA0003 Persistence
+* Technique
+  * T1108 Redundant Access
+
+Action | Impact
+------------ | -------------
+GetPasswordData | Credential access
+ModifyImageAttribute | Exfiltration
+ModifySnapshotAttribute | Exfiltration
+
+### EBS Encryption Account-wide Setting
 * Technique
   * T1492 Stored Data Manipulation
   * T1486 Data Encrypted for Impact
 * Tactic
   * TA0040 Impact
 
-#### EBS Encryption Account-wide Setting
 ```
 select *
 from cloudtrail_000000000000
@@ -577,8 +589,8 @@ where year = '####' and month = '##' and day = '##'
 and eventsource = 'ec2.amazonaws.com'
 and eventname IN ('EnableEbsEncryptionByDefault','DisableEbsEncryptionByDefault')
 ```
-### Share EBS Snapshot
 
+### Share EBS Snapshot
 * Tactics
   * TA0010 Exfiltration
 * Techniques

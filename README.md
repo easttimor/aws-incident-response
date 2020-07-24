@@ -97,8 +97,8 @@ Table of Contents
             * [SecurityHub Service Disruption](#securityhub-service-disruption)
             * [SecurityHub Findings Disruption](#securityhub-findings-disruption)
          * [Web Application Firewall (WAF)](#web-application-firewall-waf)
-      * [Useful CloudTrail fields](#useful-cloudtrail-fields)
-      * [Credit and References](#credit-and-references)
+    * [Useful CloudTrail fields](#useful-cloudtrail-fields)
+    * [Credit and References](#credit-and-references)
 
 ## Why Athena?
 CloudTrail logs should be stored and archived in S3, where they are essentially useless unless integrated with another product or service. Amazon Athena allows you to query these JSON-formatted logs using standard SQL. This approach gives access to a potentially massive amount of CloudTrail data without the cost and effort of implementing Splunk, ElasticSearch, or storing in another database.
@@ -1237,7 +1237,7 @@ UpdateRegexPatternSet | expand network access
 UpdateRuleGroup | expand network access
 UpdateWebACL | expand network access
 
-## Useful CloudTrail fields
+# Useful CloudTrail fields
 
 References
 * https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html
@@ -1268,7 +1268,7 @@ responseElements | for create,update,delete actions
 eventtype | AwsApiCall, AwsServiceEvent, AwsConsoleSignin
 eventid | globally unique CloudTrail event ID, worth remembering for easier retrieval of valuable events
 
-## Credit and References
+# Credit and References
 * https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/
 * https://medium.com/voogloo/which-cloud-trail-calls-are-important-for-security-teams-26003d9939ec
 * https://github.com/elastic/detection-rules/tree/main/rules/aws

@@ -14,14 +14,6 @@ Mis-configurations are important events to identify early. These configurations 
 
 Whether executed manually or by automating, this information may be used to develop incident response playbooks. These types of formalization activities promote a consistent, efficient, and effective response to security incidents. 
 
-To-do:
-- [ ] more service coverage (particularly network and storage)
-- [ ] consistent mapping to ATT&CK
-- [ ] CloudWatch Metrics Filters - equivalent filters for existing EventBridge filters
-- [ ] more language addressing the AWS Incident Response doc (June 2020) and Well Architected Lab
-- [ ] response playbooks?
-- [ ] bring VPC FlowLogs or any other log source in scope?
-
 Table of Contents
 =================
 

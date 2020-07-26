@@ -812,6 +812,30 @@ and eventname = 'ModifyInstanceAttribute'
 and requestParameters like '%userData%'
 ```
 
+## Lambda
+No API event in isolation should be concerning, so the importance of establishing context around Lambda service events is critical. Attackers may use existing Lambda functions to inherit elevated permissions as a pivot, for establishing persistence, or for accessing data. The actions indicated in this section are the most important to look for, but are by no means the only Lambda actions to care about in incident response.
+
+* Technique
+  * T1108 Redundant Access
+  * T1089 Disabling Security Tools
+  * T1496 Resource Hijacking
+* Tactic
+  * TA0003 Persistence
+  * TA0005 Defensive Evasion
+* General
+  * Tampering / Defacement
+  * Data exfiltration
+  * Secrets collection
+  * Pivot from trusted access
+
+Action | Impact
+------------ | -------------
+AddLayerVersionPermission | increase permissions for lambda:InvokeFunction (e.g. external account)
+AddPermission | increase permissions for lambda:InvokeFunction (e.g. external account)
+PublishLayerVersion | rogue update of function code
+PublishVersion | rogue update of function code
+UpdateFunctionCode | rogue update of function code
+
 ## Disruption and Evasion
 
 ### CloudTrail

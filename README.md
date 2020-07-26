@@ -824,6 +824,8 @@ No API event in isolation should be concerning, so the importance of establishin
 * Tactic
   * TA0003 Persistence
   * TA0005 Defensive Evasion
+* RhinoSec
+  * (15) Passing a role to a new Lambda function, then invoking it
 * General
   * Tampering / Defacement
   * Data exfiltration

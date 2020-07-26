@@ -19,6 +19,7 @@ Table of Contents
 
    * [AWS Incident Response](#aws-incident-response)
       * [Introduction](#introduction)
+   * [Table of Contents](#table-of-contents)
       * [Why Athena?](#why-athena)
          * [Getting Started](#getting-started)
          * [Alternatives](#alternatives)
@@ -63,10 +64,10 @@ Table of Contents
          * [General](#general)
          * [EBS Encryption Account-wide Setting](#ebs-encryption-account-wide-setting)
          * [Share EBS Snapshot](#share-ebs-snapshot)
-      * [Network Access](#network-access)
-      * [Traffic Mirroring](#traffic-mirroring)
-      * [Network Routing](#network-routing)
-      * [Modify UserData](#modify-userdata)
+         * [Modify UserData](#modify-userdata)
+         * [Network Access](#network-access)
+         * [Traffic Mirroring](#traffic-mirroring)
+         * [Network Routing](#network-routing)
       * [Lambda](#lambda)
       * [Disruption and Evasion](#disruption-and-evasion)
          * [CloudTrail](#cloudtrail)
@@ -90,8 +91,8 @@ Table of Contents
             * [SecurityHub Service Disruption](#securityhub-service-disruption)
             * [SecurityHub Findings Disruption](#securityhub-findings-disruption)
          * [Web Application Firewall (WAF)](#web-application-firewall-waf)
-      * [Useful CloudTrail fields](#useful-cloudtrail-fields)
-      * [Credit and References](#credit-and-references)
+   * [Useful CloudTrail fields](#useful-cloudtrail-fields)
+   * [Credit and References](#credit-and-references)
 
 ## Why Athena?
 CloudTrail logs should be stored and archived in S3, where they are essentially useless unless integrated with another product or service. Amazon Athena allows you to query these JSON-formatted logs using standard SQL. This approach gives access to a potentially massive amount of CloudTrail data without the cost and effort of implementing Splunk, ElasticSearch, or storing in another database.

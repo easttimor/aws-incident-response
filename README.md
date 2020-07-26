@@ -680,7 +680,31 @@ and eventsource = 'ec2.amazonaws.com'
 and eventname = 'ModifySnapshotAttribute'
 ```
 
-## Network Access
+### Modify UserData
+* Technique
+  * T1108 Redundant Access
+  * T1089 Disabling Security Tools
+  * T1496 Resource Hijacking
+* Tactic
+  * TA0003 Persistence
+  * TA0005 Defensive Evasion
+* General
+  * Tampering / Defacement
+  * Data exfiltration
+  * Secrets collection
+  * Pivot from trusted access
+
+> An EC2 instance will execute UserData with root-level permissions on start/re-start. The instance must be in a stopped state to configure the userdata update.
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname = 'ModifyInstanceAttribute'
+and requestParameters like '%userData%'
+```
+
+### Network Access
 * Technique
   * T1108 Redundant Access
   * T1089 Disabling Security Tools
@@ -716,7 +740,7 @@ AuthorizeSecurityGroupEgress | expand EC2 instance initiated outbound traffic pe
 CreateSecurityGroup | supports ingress/egress permissions for any associated EC2 instance
 ModifyInstanceAttribute | in this context, may be used to attach a security group to an EC2 instance network interface
 
-## Traffic Mirroring
+### Traffic Mirroring
 Traffic Mirroring is a full packet capture (pcap) capability that may be used by an adversary to exfil secrets and sensitive data from unencrypted internal traffic. Within a VPC a traffic mirroring `session` is established with collection `filter` `rules` that identify what traffic to collect and forward to a `target`. 
 
 > https://docs.aws.amazon.com/vpc/latest/mirroring/what-is-traffic-mirroring.html
@@ -740,7 +764,7 @@ CreateTrafficMirrorFilterRule | configures the traffic to capture rules applied 
 CreateTrafficMirrorSession | establishes a packet capture session
 CreateTrafficMirrorTarget | forwards captures traffic to an adversary controlled resource
 
-## Network Routing
+### Network Routing
 
 > Actions in this category have a high degree of legitimate use and are most helpful when correlated with other IoCs
 
@@ -787,30 +811,6 @@ and eventname IN (
     'DetachInternetGateway'
 )
 order by eventtime desc
-```
-
-## Modify UserData
-* Technique
-  * T1108 Redundant Access
-  * T1089 Disabling Security Tools
-  * T1496 Resource Hijacking
-* Tactic
-  * TA0003 Persistence
-  * TA0005 Defensive Evasion
-* General
-  * Tampering / Defacement
-  * Data exfiltration
-  * Secrets collection
-  * Pivot from trusted access
-
-> An EC2 instance will execute UserData with root-level permissions on start/re-start. The instance must be in a stopped state to configure the userdata update.
-
-```
-select *
-from cloudtrail_000000000000
-where year = '####' and month = '##' and day = '##'
-and eventname = 'ModifyInstanceAttribute'
-and requestParameters like '%userData%'
 ```
 
 ## Lambda

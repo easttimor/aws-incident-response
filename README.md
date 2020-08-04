@@ -258,6 +258,7 @@ and useragent = 'seeAbove'
 
 Group by user to include all access for a single user. This approach would be helpful if keys are rotated or a console login is used.
 > This value format is for an IAM user and not an assumed role
+
 ```
 select useragent, count(*) as total
 from cloudtrail_000000000000
@@ -447,12 +448,17 @@ order by total desc
   * TA0003 Persistence
 * GuardDuty:
   * Policy:IAMUser/RootCredentialUsage
+
+All Root account events
+
 ```
 select * 
 from cloudtrail_000000000000
 where year = '####' and month = '##' 
 and useridentity.type = 'Root'
 ```
+
+Only ConsoleLogin event from Root
 
 ```
 select *
@@ -622,6 +628,7 @@ order by eventtime desc
   * T1081 Credentials in Files
 * GuardDuty
   * Stealth:S3/ServerAccessLoggingDisabled
+
 ```
 select *
 from cloudtrail_000000000000
@@ -729,25 +736,34 @@ and requestParameters like '%userData%'
 * Tactic
   * TA0003 Persistence
   * TA0005 Defensive Evasion
-```
-select *
-from cloudtrail_000000000000
-where year = '####' and month = '##' and day = '##'
-and eventname IN ('CreateNetworkAcl','CreateNetworkAclEntry',
-'DeleteNetworkAcl','DeleteNetworkAclEncry')
-order by eventtime desc
-```
+
+Network Access Control List (NACL) configuration
 
 ```
 select *
 from cloudtrail_000000000000
 where year = '####' and month = '##' and day = '##'
 and eventname IN (
-    'AuthorizeSecurityGroupIngress',
-    'AuthorizeSecurityGroupEgress'
-    'CreateSecurityGroup',
-    'ModifyInstanceAttribute'
-    )
+   'CreateNetworkAcl',
+   'CreateNetworkAclEntry',
+   'DeleteNetworkAcl',
+   'DeleteNetworkAclEncry'
+   )
+order by eventtime desc
+```
+
+Security group configuration
+
+```
+select *
+from cloudtrail_000000000000
+where year = '####' and month = '##' and day = '##'
+and eventname IN (
+   'AuthorizeSecurityGroupIngress',
+   'AuthorizeSecurityGroupEgress'
+   'CreateSecurityGroup',
+   'ModifyInstanceAttribute'
+   )
 order by eventtime desc
 ```
 
@@ -869,7 +885,7 @@ UpdateFunctionCode | rogue update of function code
   * Stealth:IAMUser/CloudTrailLoggingDisabled
   * Stealth:IAMUser/LoggingConfigurationModified
 * Pacu:
-  * ```detection__disruption``` | `DeleteTrail` (del), `StopLogging` (dis), UpdateTrail (min)
+  * ```detection__disruption``` - `DeleteTrail` (del), `StopLogging` (dis), UpdateTrail (min)
  
 #### CloudTrail Disruption
 ```
@@ -879,6 +895,7 @@ where year = '####' and month = '##' and day = '##'
 and eventname IN ('DeleteTrail','StopLogging','UpdateTrail',
 'PutEventSelectors')
 ```
+
 Action | Impact
 ------------ | -------------
 DeleteTrail | disrupt recording
@@ -958,8 +975,8 @@ GuardDuty is AWS' managed threat detection services. The service evaluates VPC F
 * Tactic
   * TA0005 Defensive Evasion
 * Pacu
-  * ```guardduty__whitelist_ip``` | UpdateIPSet
-  * ```detection__disruption``` | DeleteDetector, UpdateDetector --no-enable
+  * ```guardduty__whitelist_ip``` - UpdateIPSet
+  * ```detection__disruption``` - DeleteDetector, UpdateDetector --no-enable
 
 > `Disable GuardDuty` in the Web console translates to the `DeleteDetector` API call and Pacu's `Delete` option
 
@@ -1133,6 +1150,7 @@ order by eventTime desc
 ```
 
 API Actions
+
 Action | Type | Impact
 ------------ | ------------- | -------------
 PutAccessPointPolicy | access permissions | expand permissions, data exfil
@@ -1163,6 +1181,7 @@ order by eventTime desc
 ```
 
 API Actions
+
 Action | Type | Impact
 ------------ | -------------| -------------
 PutBucketLogging | data management | suppress logging
@@ -1180,6 +1199,7 @@ References:
 * More info: https://aws.amazon.com/security-hub/faqs/
 
 #### Terminology
+
 Term | Description
 ------------ | ------------- 
 Insight | saved findings filter

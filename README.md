@@ -2,6 +2,11 @@
 Investigation of API activity using Athena
 and notification of actions using EventBridge
 
+## Use
+For a *slighly* more pleasant viewing experience, use the GitHub pages link: https://easttimor.github.io/aws-incident-response/
+
+For those on GitHub Pages already, the repo additionally contains Terraform resources for deploying Event Rules to catch high risk API events.
+
 ## Introduction
 This project explores useful CloudTrail events that support incident response and detection of misconfigurations. Documenting the queries and filters used to identify these CloudTrail events helps to:
 
@@ -13,6 +18,8 @@ This project explores useful CloudTrail events that support incident response an
 Mis-configurations are important events to identify early. These configurations may introduce a vulnerability, but may also be an indicator of compromise. 
 
 Whether executed manually or by automating, this information may be used to develop incident response playbooks. These types of formalization activities promote a consistent, efficient, and effective response to security incidents. 
+
+**NEW 2020-08-04** Addition of VPC Flow Log queries via Athena
 
 Table of Contents
 =================

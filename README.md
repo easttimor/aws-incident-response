@@ -1071,6 +1071,7 @@ order by eventtime desc
 
 ### Macie(2)
 > This section applies to the new Macie ```macie2.amazonaws.com``` which is not Macie "classic"
+
 ```
 select *
 from cloudtrail_000000000000
@@ -1107,6 +1108,7 @@ UpdateFindingsFilter | Bypass detection by suppressing findings
   * T1089 Disabling Security Tools
 * Tactic
   * TA0005 Defensive Evasion
+
 ```
 select *
 from cloudtrail_000000000000
@@ -1206,7 +1208,7 @@ Insight | saved findings filter
 Master | designated account for security hub configuration and findings aggregation
 Member | account associated with a master for findings forwarding and inheritence of configurations
 Standard | collection of controls that may be enabled/disabled
-Target |
+Target | actions in Events
 
 #### API Actions
 

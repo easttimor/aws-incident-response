@@ -1258,6 +1258,182 @@ UpdateRegexPatternSet | expand network access
 UpdateRuleGroup | expand network access
 UpdateWebACL | expand network access
 
+# Network Flow Analysis
+This is a proof-of-concept description. Expected changes for an enterprise implementation include:
+* automated partitioning of account, region, year, month, day
+* update S3 path per your environment
+
+Pre-requisites include:
+* Configuration of VPC Flow Logs with an S3 target
+* Flow Log configuration for ALL traffic
+* Resources operating within a VPC
+
+Additional query capabilities are introduced by enriching Flow Logs with additional metadata.
+> Reference: https://aws.amazon.com/blogs/aws/learn-from-your-vpc-flow-logs-with-additional-meta-data/
+
+## Manual Setup
+> Reference: https://docs.aws.amazon.com/athena/latest/ug/vpc-flow-logs.html
+
+### Add table to Athena
+```
+CREATE EXTERNAL TABLE IF NOT EXISTS vpc_flow_logs_000000000000 (
+  version int,
+  account string,
+  interfaceid string,
+  sourceaddress string,
+  destinationaddress string,
+  sourceport int,
+  destinationport int,
+  protocol int,
+  numpackets int,
+  numbytes bigint,
+  starttime int,
+  endtime int,
+  action string,
+  logstatus string
+)
+PARTITIONED BY (`date` date)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ' '
+LOCATION 's3://{bucket_name}/AWSLogs/000000000000/vpcflowlogs/{region}/'
+TBLPROPERTIES ("skip.header.line.count"="1");
+```
+### Add date partition
+Partitions limits the query return set for speed and cost savings.
+```
+ALTER TABLE vpc_flow_logs_000000000000
+ADD PARTITION (`date`='yyyy-mm-dd')
+location 's3://bucket_name}/AWSLogs/000000000000/vpcflowlogs/{region}/yyyy/mm/dd';
+```
+## Useful Queries
+### General concepts
+Packet count proves useful for surfacing a high volume of traffic on protocols with smaller payload.
+
+measurement | query
+------------ | -------------
+packet count | sum(numpackets)
+traffic volume | sum(numbytes)
+
+### Inbound Traffic
+
+#### Accepted packets by port
+This is the traffic (packet count) allowed to reach your resource
+`destinationaddress` is the private IP of your resource
+```
+select destinationport, sum(numpackets) as packets
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and destinationaddress = 'x.x.x.x'
+and action = 'ACCEPT'
+group by destinationport
+order by packets desc
+limit 10
+```
+
+#### Rejected packets by port
+This is the traffic (packet count) blocked from reaching your resource.
+REJECTED traffic may be due to a NACL Deny rule or lack of a security group rule.
+`destinationaddress` is the private IP of your resource
+```
+select destinationport, sum(numpackets) as packets
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and destinationaddress = 'x.x.x.x'
+and action = 'REJECT'
+group by destinationport
+order by packets desc
+limit 10
+```
+
+#### Volume by sourceaddress
+`destinationaddress` is the private IP of your resource
+```
+select sourceaddress, sum(numbytes) as volume
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and destinationaddress = 'x.x.x.x'
+group by sourceaddress
+order by volume desc
+limit 10
+```
+#### Volume by destinationport
+`destinationaddress` is the private IP of your resource
+```
+select destinationport, sum(numbytes) as volume
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and destinationaddress = 'x.x.x.x'
+group by destinationport
+order by volume desc
+limit 10
+```
+### Outbound Traffic
+
+#### Volume by desination
+`sourceaddress` is the private IP of your resource
+```
+select destinationaddress, sum(numbytes) as volume
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and sourceaddress = 'x.x.x.x'
+group by destinationaddress
+order by volume desc
+limit 10
+```
+#### Volume by port
+`destinationaddress` is the private IP of your resource
+```
+select destinationport, sum(numbytes) as volume
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and sourceaddress = 'x.x.x.x'
+group by destinationport
+order by volume desc
+limit 10
+```
+
+#### Rejected by port
+This is the traffic (packet count) allowed to reach your resource
+`destinationaddress` is the private IP of your resource
+```
+select destinationport, sum(numpackets) as packets
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and destinationaddress = 'x.x.x.x'
+and action = 'ACCEPT'
+group by destinationport
+order by packets desc
+limit 10
+```
+
+#### Rejected by destination
+```
+select destinationaddress, sum(numpackets) as packets
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and sourceaddress = 'x.x.x.x'
+and action = 'REJECT'
+group by destinationaddress
+order by packets desc
+limit 10
+```
+
+### Example: Connectionless LDAP Reflection Attack
+`destinationaddress` is your resource being used in the attack
+`protocol` is 17/UDP
+`destinationport` is 389/LDAP
+```
+select sourceaddress, sum(numpackets) as packets
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd')
+and destinationaddress = 'x.x.x.x'
+and protocol = 17
+and destinationport = 389
+group by sourceaddress
+order by packets desc
+```
+
+
 # Useful CloudTrail fields
 
 References

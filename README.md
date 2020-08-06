@@ -1380,6 +1380,7 @@ limit 10
 This is the traffic (packet count) blocked from reaching your resource.
 REJECTED traffic may be due to a NACL Deny rule or lack of a security group rule.
 `destinationaddress` is the private IP of your resource
+
 ```
 select destinationport, sum(numpackets) as packets
 from vpc_flow_logs_000000000000
@@ -1393,6 +1394,7 @@ limit 10
 
 #### Volume by sourceaddress
 `destinationaddress` is the private IP of your resource
+
 ```
 select sourceaddress, sum(numbytes) as volume
 from vpc_flow_logs_000000000000
@@ -1402,6 +1404,7 @@ group by sourceaddress
 order by volume desc
 limit 10
 ```
+
 #### Volume by destinationport
 `destinationaddress` is the private IP of your resource
 ```
@@ -1413,9 +1416,25 @@ group by destinationport
 order by volume desc
 limit 10
 ```
+
+#### Assess specific time range
+`destinationaddress` is the private IP of your resource
+`starttime` and `endtime` uses epoch
+> Reference: https://www.epochconverter.com/
+
+```
+select *
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd') 
+and destinationaddress = 'x.x.x.x'
+and starttime > 1596225600
+and endtime < 1596226200
+```
+
 ### Outbound Traffic
 
 #### Volume by desination
+
 `sourceaddress` is the private IP of your resource
 ```
 select destinationaddress, sum(numbytes) as volume
@@ -1426,7 +1445,9 @@ group by destinationaddress
 order by volume desc
 limit 10
 ```
+
 #### Volume by port
+
 `destinationaddress` is the private IP of your resource
 ```
 select destinationport, sum(numbytes) as volume
@@ -1436,6 +1457,20 @@ and sourceaddress = 'x.x.x.x'
 group by destinationport
 order by volume desc
 limit 10
+```
+
+#### Assess specific time range
+`source` is the private IP of your resource
+`starttime` and `endtime` uses epoch
+> Reference: https://www.epochconverter.com/
+
+```
+select *
+from vpc_flow_logs_000000000000
+WHERE date = DATE('yyyy-mm-dd') 
+and sourceaddress = 'x.x.x.x'
+and starttime > 1596225600
+and endtime < 1596226200
 ```
 
 #### Rejected by port

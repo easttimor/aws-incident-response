@@ -24,9 +24,6 @@ Whether executed manually or by automating, this information may be used to deve
 Table of Contents
 =================
 
-<details>
-  <summary>click to expand</summary>
-
    * [AWS Incident Response](#aws-incident-response)
       * [Introduction](#introduction)
    * [Table of Contents](#table-of-contents)
@@ -121,7 +118,6 @@ Table of Contents
    * [Useful CloudTrail fields](#useful-cloudtrail-fields)
    * [Credit and References](#credit-and-references)
 
-</details>
 
 ## Why Athena?
 CloudTrail logs should be stored and archived in S3, where they are essentially useless unless integrated with another product or service. Amazon Athena allows you to query these JSON-formatted logs using standard SQL. This approach gives access to a potentially massive amount of CloudTrail data without the cost and effort of implementing Splunk, ElasticSearch, or storing in another database.

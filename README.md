@@ -173,7 +173,7 @@ limit 25
 ### Activity from potentially malicious source ip
 ```
 select eventTime, eventSource, eventName, awsRegion, userIdentity.arn, sourceIPAddress, userAgent
-from from cloudtrail_000000000000
+from cloudtrail_000000000000
 and year = '####' and month = '##'
 and sourceIPAddress = 'x.x.x.x'
 order by eventTime desc

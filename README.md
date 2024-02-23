@@ -163,7 +163,7 @@ The following section builds a collection of common incidents and the Athena que
 ### API Errors
 ```
 select eventTime, eventSource, eventName, errorCode, errorMessage, responseElements, awsRegion, userIdentity.arn, sourceIPAddress, userAgent
-from from cloudtrail_000000000000
+from cloudtrail_000000000000
 and year = '####' and month = '##'
 and errorCode in ('Client.UnauthorizedOperation','Client.InvalidPermission.NotFound','Client.OperationNotPermitted','AccessDenied')
 order by eventTime desc
@@ -173,7 +173,7 @@ limit 25
 ### Activity from potentially malicious source ip
 ```
 select eventTime, eventSource, eventName, awsRegion, userIdentity.arn, sourceIPAddress, userAgent
-from from cloudtrail_000000000000
+from cloudtrail_000000000000
 and year = '####' and month = '##'
 and sourceIPAddress = 'x.x.x.x'
 order by eventTime desc
@@ -184,7 +184,7 @@ limit 25
 The ListBuckets API action, used to enumerate buckets within an AWS account, is a potential indicator of compromise.
 ```
 select eventTime, eventSource, eventName, awsRegion, errorCode, errorMessage, userIdentity.arn, sourceIPAddress, userAgent
-from from cloudtrail_000000000000
+from cloudtrail_000000000000
 and year = '####' and month = '##'
 and eventName = 'ListBuckets'
 limit 25
